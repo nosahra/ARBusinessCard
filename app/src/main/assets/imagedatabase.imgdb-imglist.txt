@@ -1,0 +1,2 @@
+playingCard|C:\Users\ourse\AndroidStudioProjects\WORKING_hello_ar_kotlin\app\src\main\assets\images\playingcard.jpeg|0.065
+QRcard|C:\Users\ourse\AndroidStudioProjects\WORKING_hello_ar_kotlin\app\src\main\assets\images\QRcard.jpeg|0.065
