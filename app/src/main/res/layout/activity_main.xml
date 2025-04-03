@@ -30,6 +30,7 @@
       android:id="@+id/settings_button"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:visibility="gone"
       android:layout_alignParentEnd="true"
       android:layout_alignParentTop="true"
       android:layout_margin="25dp"
@@ -41,6 +42,7 @@
       android:id="@+id/linkedin_button"
       android:layout_width="70dp"
       android:layout_height="70dp"
+      android:visibility="gone"
       android:layout_alignParentTop="true"
       android:layout_alignParentStart="true"
       android:layout_marginTop="200dp"
@@ -56,6 +58,7 @@
       android:id="@+id/github_button"
       android:layout_width="70dp"
       android:layout_height="70dp"
+      android:visibility="gone"
       android:layout_centerHorizontal="true"
       android:layout_alignParentTop="true"
       android:layout_marginTop="200dp"
@@ -69,6 +72,7 @@
       android:id="@+id/email_button"
       android:layout_width="70dp"
       android:layout_height="70dp"
+      android:visibility="gone"
       android:layout_alignParentTop="true"
       android:layout_alignParentEnd="true"
       android:layout_marginTop="200dp"
@@ -80,7 +84,7 @@
       android:scaleType="centerInside" />
 
   <TextView
-      android:id="@+id/workhistory_text"
+      android:id="@+id/education_text"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:visibility="gone"
@@ -94,7 +98,7 @@
       android:background="@drawable/rounded_transparent_background" />
 
   <TextView
-      android:id="@+id/projects_text"
+      android:id="@+id/experience_text"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:visibility="gone"
@@ -108,7 +112,7 @@
       android:background="@drawable/rounded_transparent_background" />
 
   <TextView
-      android:id="@+id/achievements_text"
+      android:id="@+id/hobbies_text"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:visibility="gone"
@@ -122,9 +126,10 @@
       android:background="@drawable/rounded_transparent_background" />
 
   <Button
-      android:id="@+id/workhistory_button"
+      android:id="@+id/education_button"
       android:layout_width="300dip"
       android:layout_height="50dip"
+      android:visibility="gone"
       android:layout_centerHorizontal="true"
       android:layout_alignParentBottom="true"
       android:layout_marginBottom="150dp"
@@ -135,9 +140,10 @@
       android:text="Education" />
 
   <Button
-      android:id="@+id/projects_button"
+      android:id="@+id/experience_button"
       android:layout_width="300dip"
       android:layout_height="50dip"
+      android:visibility="gone"
       android:layout_centerHorizontal="true"
       android:layout_alignParentBottom="true"
       android:layout_marginBottom="90dp"
@@ -149,9 +155,10 @@
 
 
   <Button
-      android:id="@+id/achievements_button"
+      android:id="@+id/hobbies_button"
       android:layout_width="300dip"
       android:layout_height="50dip"
+      android:visibility="gone"
       android:layout_centerHorizontal="true"
       android:layout_alignParentBottom="true"
       android:layout_marginBottom="30dp"

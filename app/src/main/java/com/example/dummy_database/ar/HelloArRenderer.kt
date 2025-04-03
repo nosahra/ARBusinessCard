@@ -360,7 +360,7 @@ class HelloArRenderer(val activity: HelloArActivity) :
                 render,
                 "models/female.obj"
             )  // Replace with your model filename
-          Log.d(TAG, "Custom model loaded successfully")
+        Log.d(TAG, "Custom model loaded successfully")
       } catch (e: IOException) {
           Log.e(TAG, "Failed to load custom model", e)
         showError("Failed to load custom model: ${e.message}")
@@ -402,6 +402,8 @@ class HelloArRenderer(val activity: HelloArActivity) :
     displayRotationHelper.onSurfaceChanged(width, height)
     virtualSceneFramebuffer.resize(width, height)
   }
+
+  private var uiShown = false
 
   override fun onDrawFrame(render:  SampleRender) {
     val session = session ?: return
@@ -533,12 +535,12 @@ class HelloArRenderer(val activity: HelloArActivity) :
     }
 
     // Visualize planes.
-    planeRenderer.drawPlanes(
-      render,
-      session.getAllTrackables<Plane>(Plane::class.java),
-      camera.displayOrientedPose,
-      projectionMatrix
-    )
+//    planeRenderer.drawPlanes(
+//      render,
+//      session.getAllTrackables<Plane>(Plane::class.java),
+//      camera.displayOrientedPose,
+//      projectionMatrix
+//    )
 
     // -- Draw occluded virtual objects
 
@@ -574,6 +576,13 @@ class HelloArRenderer(val activity: HelloArActivity) :
 
     // Compose the virtual scene with the background.
     backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR)
+
+    if (!uiShown && wrappedAnchors.any { it.anchor.trackingState == TrackingState.TRACKING }) {
+      uiShown = true
+      activity.runOnUiThread {
+        activity.view.showButtons()
+      }
+    }
   }
 
   /** Checks if we detected at least one plane. */
