@@ -25,7 +25,7 @@ suspend fun synthesizeAndPlay(context: Context, text: String, voicePreference: S
     val request = TTSRequest(
         input = Input(text),
         voice = Voice(
-            languageCode = "en-US",
+            languageCode = "en-GB",
             name = voiceName,
             ssmlGender = ssmlGender
         ),
@@ -33,7 +33,7 @@ suspend fun synthesizeAndPlay(context: Context, text: String, voicePreference: S
     )
 
     // IMPORTANT: Replace this API key with your actual key (store it securely!)
-    val apiKey = "YOUR_API_KEY"
+    val apiKey = "AIzaSyDoba8eStqzTUAr8O3COyc-eGRFzmWHank"
 
     try {
         // Call the TTS API (this is a suspend function).

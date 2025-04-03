@@ -201,6 +201,9 @@ class HelloArRenderer(val activity: HelloArActivity) :
 
             // Add to our detected set to avoid duplicate toasts
             detectedImageIds.add(augmentedImage.index)
+
+            // NEW: Trigger TTS for introduction on first anchor creation.
+            activity.triggerTTSForIntroduction()
           }
         }
         TrackingState.PAUSED, TrackingState.STOPPED -> {

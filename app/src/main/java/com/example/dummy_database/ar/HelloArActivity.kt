@@ -20,6 +20,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.ar.core.Config
 import com.google.ar.core.Config.InstantPlacementMode
 import com.google.ar.core.Session
@@ -34,6 +35,11 @@ import com.google.ar.core.exceptions.UnavailableApkTooOldException
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.example.dummy_database.tts.synthesizeAndPlay
 
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
@@ -51,6 +57,29 @@ class HelloArActivity : AppCompatActivity() {
 
   val instantPlacementSettings = InstantPlacementSettings()
   val depthSettings = DepthSettings()
+
+  // Flag to ensure TTS is triggered only once.
+  var ttsTriggered = false
+
+  // Retrieve extras once.
+  val introductionText: String by lazy {
+    intent.getStringExtra("introduction") ?: ""
+  }
+  val voicePreference: String by lazy {
+    intent.getStringExtra("voicePreference") ?: ""
+  }
+
+  // Call this method to trigger TTS for the introduction.
+  fun triggerTTSForIntroduction() {
+    if (!ttsTriggered && introductionText.isNotEmpty()) {
+      ttsTriggered = true
+      // Use a coroutine to call your suspend function.
+      // It’s better to use lifecycleScope instead of GlobalScope.
+      lifecycleScope.launch(Dispatchers.IO) {
+        synthesizeAndPlay(this@HelloArActivity, introductionText, voicePreference)
+      }
+    }
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
