@@ -40,6 +40,8 @@ fun ScannerScreen(
     var linkedInLink by remember { mutableStateOf("") }
     var githubLink by remember { mutableStateOf("") }
     var emailAddress by remember { mutableStateOf("") }
+    var voicePreference by remember { mutableStateOf("") }
+    var avatarId by remember { mutableStateOf("") }
 
     // Firestore reference
     val db = Firebase.firestore
@@ -67,6 +69,8 @@ fun ScannerScreen(
                             linkedInLink = document.getString("linkedInUrl") ?: ""
                             githubLink = document.getString("githubUrl") ?: ""
                             emailAddress = document.getString("email") ?: ""
+                            voicePreference = document.getString("voicePreference") ?: ""
+                            avatarId = document.getString("avatar_id") ?: ""
 
                             // Launch the AR activity directly.
                             val intent = Intent(context, HelloArActivity::class.java).apply {
@@ -74,6 +78,12 @@ fun ScannerScreen(
                                 putExtra("experience", experience)
                                 putExtra("hobbies", hobbies)
                                 putExtra("introduction", introduction)
+                                putExtra("linkedInUrl", linkedInLink)
+                                putExtra("githubUrl", githubLink)
+                                putExtra("email", emailAddress)
+                                putExtra("voicePreference", voicePreference)
+                                putExtra("avatar_id", avatarId)
+
                             }
                             // Optionally, you can pass extras if needed:
                             // intent.putExtra("avatar_id", "default")

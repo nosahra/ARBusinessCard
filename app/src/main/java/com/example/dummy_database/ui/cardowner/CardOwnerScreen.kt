@@ -57,7 +57,10 @@ fun CardOwnerScreen(
 
     // Radio Button state and options
     var selectedAvatar by remember { mutableStateOf<String?>(null) }
-    val avatarOptions = listOf("avatar_woman", "avatar_man")
+    val avatarOptions = listOf("avatar_man", "avatar_woman")
+
+    var voicePreference by remember {mutableStateOf<String?>(null) }
+    val avatarVoices = listOf("MALE", "FEMALE")
 
     // The user's UID (document ID)
     val uid = auth.currentUser?.uid ?: ""
@@ -73,7 +76,8 @@ fun CardOwnerScreen(
     var alertMessage by remember { mutableStateOf("") }
 
     // Track if we can save (based on whether an avatar is selected)
-    val canSave = selectedAvatar != null
+    val canSaveAvatar = selectedAvatar != null
+    val canSaveVoice = voicePreference != null
 
     // When the screen first appears, load existing data
     LaunchedEffect(uid) {
@@ -88,6 +92,7 @@ fun CardOwnerScreen(
                     hobbies = docSnap.getString("hobbies") ?: ""
                     githubUrl = docSnap.getString("githubUrl") ?: ""
                     gmail = docSnap.getString("gmail") ?: ""
+                    voicePreference = docSnap.getString("voicePreference")
                     selectedAvatar = docSnap.getString("avatarId")
                 }
                 // We'll set  uId to the user's UID for the QR code
@@ -211,6 +216,27 @@ fun CardOwnerScreen(
             modifier = Modifier.padding(top = 16.dp)
         )
 
+        // Voice Preference field
+        Text("Select Voice Preference:")
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            avatarVoices.forEach { avatarVoice ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = voicePreference == avatarVoice,
+                        onClick = { voicePreference = avatarVoice }
+                    )
+                    Text(text = avatarVoice)
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+        }
+
+
         // Radio Button Group for Avatar Selection
         Text("Select Avatar:")
         Row(
@@ -238,11 +264,17 @@ fun CardOwnerScreen(
 //                    Log.w("CardOwnerScreen", "No user logged in. Cannot save.")
 //                    return@Button
 //                }
-                if (!canSave) {
+                if (!canSaveAvatar) {
                     // Show Alert Dialog:
                     alertMessage = "Please select an avatar before saving."
                     showDialog = true
-                } else{
+                }
+                else if (!canSaveVoice) {
+                    // Show Alert Dialog:
+                    alertMessage = "Please select a voice before saving."
+                    showDialog = true
+                }
+                else{
 
                 val data = mapOf(
                     "linkedInUrl" to linkedInUrl,
@@ -252,6 +284,7 @@ fun CardOwnerScreen(
                     "hobbies" to hobbies,
                     "githubUrl" to githubUrl,
                     "gmail" to gmail,
+                    "voicePreference" to voicePreference,
                     "avatarId" to selectedAvatar
                 )
                 db.collection("cardholders")
@@ -312,7 +345,8 @@ data class CardholderData(
     val education: String = "",
     val experience: String = "",
     val hobbies: String = "",
-    val avatarId: String = ""
+    val avatarId: String = "",
+    val voicePreference: String = ""
 )
 
 @Composable

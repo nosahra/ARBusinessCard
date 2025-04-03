@@ -28,12 +28,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.example.dummy_database.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.ar.core.Config
 import com.example.dummy_database.ar.helpers.SnackbarHelper
 import com.example.dummy_database.ar.helpers.TapHelper
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 /** Contains UI elements for Hello AR. */
@@ -81,6 +83,10 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     activity.intent.getStringExtra("email") ?: "No Email Address"
   }
 
+  private val voicePreference: String by lazy {
+    activity.intent.getStringExtra("voicePreference") ?: "No Voice Preference"
+  }
+
 
   // make so that buttons appears only when ar character is in view
   val linkedInButton =
@@ -109,7 +115,15 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       workHistoryText.postDelayed({
         workHistoryText.visibility = View.GONE
       }, 5000)
-
+      // Trigger TTS for Education:
+      activity.lifecycleScope.launch(Dispatchers.IO) {
+        com.example.dummy_database.tts.synthesizeAndPlay(
+          activity,
+          educationText,
+          // Use the voice preference fetched from the Intent extra
+          activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
+        )
+      }
     }
   }
 
@@ -123,7 +137,14 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       projectsText.postDelayed({
         projectsText.visibility = View.GONE
       }, 5000)
-
+      // Trigger TTS for Experience:
+      activity.lifecycleScope.launch(Dispatchers.IO) {
+        com.example.dummy_database.tts.synthesizeAndPlay(
+          activity,
+          experienceText,
+          activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
+        )
+      }
     }
   }
 
@@ -138,9 +159,18 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       achievementsText.postDelayed({
         achievementsText.visibility = View.GONE
       }, 5000)
-
+      // Trigger TTS for Hobbies:
+      activity.lifecycleScope.launch(Dispatchers.IO) {
+        com.example.dummy_database.tts.synthesizeAndPlay(
+          activity,
+          hobbiesText,
+          activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
+        )
+      }
     }
   }
+
+
 
 
 
@@ -230,4 +260,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
         .show()
     }
   }
+
+
+
 }
