@@ -60,25 +60,39 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     }
 
   // In HelloArView.kt, near the top inside the class body (or in an init block):
-  private val educationText: String by lazy {
+  private val educationTextFetch: String by lazy {
     activity.intent.getStringExtra("education") ?: "No Education Data"
   }
-  private val experienceText: String by lazy {
+  private val experienceTextFetch: String by lazy {
     activity.intent.getStringExtra("experience") ?: "No Experience Data"
   }
-  private val hobbiesText: String by lazy {
+  private val hobbiesTextFetch: String by lazy {
     activity.intent.getStringExtra("hobbies") ?: "No Hobbies Data"
   }
   private val introductionText: String by lazy {
     activity.intent.getStringExtra("introduction") ?: "No Introduction Data"
   }
 
+  private fun addHttpsPrefix(url: String): String {
+    return if (url.startsWith("https://www.")) {
+      url
+    } else if (url.startsWith("https://")){
+      "https://$url"
+    } else {
+      "https://www.$url"
+    }
+  }
+
   private val linkedInLink: String by lazy {
-    activity.intent.getStringExtra("linkedInUrl") ?: "No LinkedIn URL"
+    val rawLink = activity.intent.getStringExtra("linkedInUrl") ?: "No LinkedIn URL"
+    if (rawLink == "No LinkedIn URL") rawLink else addHttpsPrefix(rawLink)
   }
+
   private val githubLink: String by lazy {
-    activity.intent.getStringExtra("githubUrl") ?: "No GitHub URL"
+    val rawLink = activity.intent.getStringExtra("githubUrl") ?: "No GitHub URL"
+    if (rawLink == "No GitHub URL") rawLink else addHttpsPrefix(rawLink)
   }
+
   private val emailAddress: String by lazy {
     activity.intent.getStringExtra("email") ?: "No Email Address"
   }
@@ -87,39 +101,64 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     activity.intent.getStringExtra("voicePreference") ?: "No Voice Preference"
   }
 
-
-  // make so that buttons appears only when ar character is in view
+  val httpIntent = Intent(Intent.ACTION_VIEW)
   val linkedInButton =
     root.findViewById<ImageButton>(R.id.linkedin_button).apply {
-      setOnClickListener { v ->
-        // Replace with your actual LinkedIn URL.
-        val linkedInUrl = linkedInLink
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(linkedInUrl))
-        // Check if there's an app available to handle the intent.
-        if (intent.resolveActivity(activity.packageManager) != null) {
-          activity.startActivity(intent)
-        } else {
-          Toast.makeText(activity, "No app available to open the URL", Toast.LENGTH_SHORT).show()
+      setOnClickListener {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(linkedInLink))
+        try {
+          if (intent.resolveActivity(activity.packageManager) != null) {
+            activity.startActivity(intent)
+          } else {
+            Toast.makeText(activity, "No LinkedIn URL available", Toast.LENGTH_SHORT).show()
+          }
+        } catch (e: Exception) {
+          Toast.makeText(activity, "Error opening LinkedIn URL: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
       }
     }
 
+  val githubButton =
+    root.findViewById<ImageButton>(R.id.github_button).apply {
+      setOnClickListener {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubLink))
+        try {
+          if (intent.resolveActivity(activity.packageManager) != null) {
+            activity.startActivity(intent)
+          } else {
+            Toast.makeText(activity, "No GitHub URL available", Toast.LENGTH_SHORT).show()
+          }
+        } catch (e: Exception) {
+          Toast.makeText(activity, "Error opening GitHub URL: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
+      }
+    }
+
+  val emailButton =
+    root.findViewById<ImageButton>(R.id.email_button).apply {
+      setOnClickListener {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("mailto:$emailAddress"))
+        activity.startActivity(intent)
+      }
+    }
+
+
   // turn into real subtitles once apps merge
-  val workHistoryButton = root.findViewById<Button>(R.id.workhistory_button)
-  val workHistoryText = root.findViewById<TextView>(R.id.workhistory_text)
+  val educationButton = root.findViewById<Button>(R.id.education_button)
+  val educationText = root.findViewById<TextView>(R.id.education_text)
 
   init {
-    workHistoryButton.setOnClickListener {
-      workHistoryText.text = educationText
-      workHistoryText.visibility = View.VISIBLE
-      workHistoryText.postDelayed({
-        workHistoryText.visibility = View.GONE
+    educationButton.setOnClickListener {
+      educationText.text = educationTextFetch
+      educationText.visibility = View.VISIBLE
+      educationText.postDelayed({
+        educationText.visibility = View.GONE
       }, 5000)
       // Trigger TTS for Education:
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.synthesizeAndPlay(
           activity,
-          educationText,
+          educationTextFetch,
           // Use the voice preference fetched from the Intent extra
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
         )
@@ -127,52 +166,57 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     }
   }
 
-  val projectsButton = root.findViewById<Button>(R.id.projects_button)
-  val projectsText = root.findViewById<TextView>(R.id.projects_text)
+  val experienceButton = root.findViewById<Button>(R.id.experience_button)
+  val experienceText = root.findViewById<TextView>(R.id.experience_text)
 
   init {
-    projectsButton.setOnClickListener {
-      projectsText.text = experienceText
-      projectsText.visibility = View.VISIBLE
-      projectsText.postDelayed({
-        projectsText.visibility = View.GONE
+    experienceButton.setOnClickListener {
+      experienceText.text = experienceTextFetch
+      experienceText.visibility = View.VISIBLE
+      experienceText.postDelayed({
+        experienceText.visibility = View.GONE
       }, 5000)
       // Trigger TTS for Experience:
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.synthesizeAndPlay(
           activity,
-          experienceText,
+          experienceTextFetch,
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
         )
       }
     }
   }
 
-  val achievementsButton = root.findViewById<Button>(R.id.achievements_button)
-  val achievementsText = root.findViewById<TextView>(R.id.achievements_text)
+  val hobbiesButton = root.findViewById<Button>(R.id.hobbies_button)
+  val hobbiesText = root.findViewById<TextView>(R.id.hobbies_text)
 
   init {
-    achievementsButton.setOnClickListener {
-      achievementsText.text = hobbiesText
-      achievementsText.visibility = View.VISIBLE
+    hobbiesButton.setOnClickListener {
+      hobbiesText.text = hobbiesTextFetch
+      hobbiesText.visibility = View.VISIBLE
       // Hide the text after 3 seconds (3000 milliseconds)
-      achievementsText.postDelayed({
-        achievementsText.visibility = View.GONE
+      hobbiesText.postDelayed({
+        hobbiesText.visibility = View.GONE
       }, 5000)
       // Trigger TTS for Hobbies:
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.synthesizeAndPlay(
           activity,
-          hobbiesText,
+          hobbiesTextFetch,
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
         )
       }
     }
   }
 
-
-
-
+  fun showButtons() {
+    linkedInButton.visibility = View.VISIBLE
+    githubButton.visibility = View.VISIBLE
+    emailButton.visibility = View.VISIBLE
+    educationButton.visibility = View.VISIBLE
+    experienceButton.visibility = View.VISIBLE
+    hobbiesButton.visibility = View.VISIBLE
+  }
 
   val session
     get() = activity.arCoreSessionHelper.session
