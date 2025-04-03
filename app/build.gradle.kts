@@ -116,5 +116,10 @@ dependencies {
     implementation("com.google.android.material:material:1.1.0")
 
     implementation("de.javagl:obj:0.4.0")
+
+    // Existing Compose and Android dependencies...
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
 }
 
