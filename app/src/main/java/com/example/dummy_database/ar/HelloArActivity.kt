@@ -15,12 +15,15 @@
  */
 package com.example.dummy_database.ar
 
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.dummy_database.R
 import com.google.ar.core.Config
 import com.google.ar.core.Config.InstantPlacementMode
 import com.google.ar.core.Session
@@ -83,6 +86,17 @@ class HelloArActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    // Determine if the device is a phone or a device that should support multiple orientations.
+    // For example, you might check for a feature or screen size.
+    if (isPhoneDevice()) {
+      requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    } else {
+      // Allow flexible orientation (fullSensor) for devices like tablets or Chrome OS.
+      requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+    }
+
+    setContentView(R.layout.activity_main)
 
     // Setup ARCore session lifecycle helper and configuration.
     arCoreSessionHelper = ARCoreSessionLifecycleHelper(this)
@@ -147,6 +161,14 @@ class HelloArActivity : AppCompatActivity() {
           }
       }
     )
+  }
+
+  // You can implement a simple check based on screen size or other criteria.
+  private fun isPhoneDevice(): Boolean {
+    // Example check using screen size: phones typically have a smaller screen.
+    val screenLayout = resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK
+    return screenLayout == Configuration.SCREENLAYOUT_SIZE_SMALL ||
+            screenLayout == Configuration.SCREENLAYOUT_SIZE_NORMAL
   }
 
   override fun onRequestPermissionsResult(
