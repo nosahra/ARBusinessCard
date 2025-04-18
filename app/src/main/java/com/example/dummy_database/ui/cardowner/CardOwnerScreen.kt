@@ -1,6 +1,8 @@
 package com.example.dummy_database.ui.cardowner
 
+import android.R.attr.onClick
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -31,6 +34,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await  // (Important) for .await()
 
+
 @Composable
 fun CardOwnerScreen(
     onBackClick: () -> Unit
@@ -38,12 +42,16 @@ fun CardOwnerScreen(
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
 
+    // Intercept ANY back‑press and force sign‑out
+    BackHandler {
+        auth.signOut()
+        onBackClick()
+    }
+
     // Remember the last interaction time
     val scope = rememberCoroutineScope()
     var lastInteractionTime by remember { mutableStateOf(System.currentTimeMillis()) }
     val timeoutMillis = 5 * 60 * 1000L // 5 minutes
-
-
 
 
     // We’ll store each text field in local state.
@@ -78,6 +86,12 @@ fun CardOwnerScreen(
     // Track if we can save (based on whether an avatar is selected)
     val canSaveAvatar = selectedAvatar != null
     val canSaveVoice = voicePreference != null
+
+    // A second dialog flag for logout confirmation
+    var showLogoutConfirm by remember { mutableStateOf(false) }
+
+    var showSaveSuccess by remember { mutableStateOf(false) }
+
 
     // When the screen first appears, load existing data
     LaunchedEffect(uid) {
@@ -142,6 +156,56 @@ fun CardOwnerScreen(
     },
     horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if(showDialog){
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Oops!") },
+                text = { Text(alertMessage) },
+                confirmButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+
+        // logout‑confirmation dialog
+        if (showLogoutConfirm) {
+            AlertDialog(
+                onDismissRequest = { showLogoutConfirm = false },
+                title = { Text("Confirm logout") },
+                text = { Text("Have you saved your changes?") },
+                confirmButton = {
+                    Button(onClick = {
+                        // actually sign out & navigate
+                        FirebaseAuth.getInstance().signOut()
+                        onBackClick()
+                    }) {
+                        Text("Yes, Logout")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showLogoutConfirm = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (showSaveSuccess) {
+            AlertDialog(
+                onDismissRequest = { showSaveSuccess = false },
+                title        = { Text("Saved!") },
+                text         = { Text("Your changes have been saved.") },
+                confirmButton = {
+                    Button(onClick = { showSaveSuccess = false }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+
+
         Text("CardOwner Screen")
 
         // LinkedIn URL field
@@ -293,6 +357,7 @@ fun CardOwnerScreen(
                     .addOnSuccessListener {
                         uId = uid  // We know the doc ID is just the UID
                         Log.d("CardOwnerScreen", "Data saved for user $uid")
+                        showSaveSuccess = true
                     }
                     .addOnFailureListener { e ->
                         Log.w("CardOwnerScreen", "Error saving data", e)
@@ -325,10 +390,7 @@ fun CardOwnerScreen(
         // If user is logged in, show a Logout button
         if (auth.currentUser != null) {
             Button(
-                onClick = {
-                    auth.signOut()
-                    onBackClick()  // go back or navigate somewhere else
-                },
+                onClick = { showLogoutConfirm = true },
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 Text("Logout")
