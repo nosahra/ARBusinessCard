@@ -1,12 +1,13 @@
 package com.example.dummy_database.ui.scanner
 
-
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContract
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
+import com.journeyapps.barcodescanner.CaptureActivity
+
 
 
 /**
@@ -23,6 +24,7 @@ class ZxingScannerContract : ActivityResultContract<Unit, String?>() {
 
         // 3) Use IntentIntegrator with the actual Activity
         val integrator = IntentIntegrator(activity)
+        integrator.setCaptureActivity(PortraitCaptureActivity::class.java)
         integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
         integrator.setPrompt("Scan a QR code")
         integrator.setCameraId(0) // Use a specific camera if needed
@@ -40,3 +42,9 @@ class ZxingScannerContract : ActivityResultContract<Unit, String?>() {
         return result?.contents // The scanned text (doc ID), or null if canceled
     }
 }
+
+/**
+ * A no‑frills subclass of the ZXing CaptureActivity
+ * that we can force into portrait (or sensor‑portrait) mode.
+ */
+class PortraitCaptureActivity: CaptureActivity()
