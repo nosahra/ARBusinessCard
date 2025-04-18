@@ -15,6 +15,7 @@
  */
 package com.example.dummy_database.ar
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.res.Resources
 import android.net.Uri
@@ -73,24 +74,24 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     activity.intent.getStringExtra("introduction") ?: "No Introduction Data"
   }
 
-  private fun addHttpsPrefix(url: String): String {
-    return if (url.startsWith("https://www.")) {
-      url
-    } else if (url.startsWith("https://")){
-      "https://$url"
+  private fun normalizeUrl(raw: String): String {
+    val trimmed = raw.trim()
+    return if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      trimmed
     } else {
-      "https://www.$url"
+      "https://$trimmed"
     }
   }
 
+
   private val linkedInLink: String by lazy {
     val rawLink = activity.intent.getStringExtra("linkedInUrl") ?: "No LinkedIn URL"
-    if (rawLink == "No LinkedIn URL") rawLink else addHttpsPrefix(rawLink)
+    if (rawLink == "No LinkedIn URL") rawLink else normalizeUrl(rawLink)
   }
 
   private val githubLink: String by lazy {
     val rawLink = activity.intent.getStringExtra("githubUrl") ?: "No GitHub URL"
-    if (rawLink == "No GitHub URL") rawLink else addHttpsPrefix(rawLink)
+    if (rawLink == "No GitHub URL") rawLink else normalizeUrl(rawLink)
   }
 
   private val emailAddress: String by lazy {
@@ -101,19 +102,19 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     activity.intent.getStringExtra("voicePreference") ?: "No Voice Preference"
   }
 
-  val httpIntent = Intent(Intent.ACTION_VIEW)
   val linkedInButton =
     root.findViewById<ImageButton>(R.id.linkedin_button).apply {
       setOnClickListener {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(linkedInLink))
+        val chooser = Intent.createChooser(intent, "Open link with…")
         try {
-          if (intent.resolveActivity(activity.packageManager) != null) {
-            activity.startActivity(intent)
-          } else {
-            Toast.makeText(activity, "No LinkedIn URL available", Toast.LENGTH_SHORT).show()
-          }
-        } catch (e: Exception) {
-          Toast.makeText(activity, "Error opening LinkedIn URL: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+          activity.startActivity(chooser)
+        } catch (e: ActivityNotFoundException) {
+          Toast.makeText(
+            activity,
+            "No app installed can open:\n$linkedInLink",
+            Toast.LENGTH_LONG
+          ).show()
         }
       }
     }
@@ -122,14 +123,15 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     root.findViewById<ImageButton>(R.id.github_button).apply {
       setOnClickListener {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubLink))
+        val chooser = Intent.createChooser(intent, "Open link with…")
         try {
-          if (intent.resolveActivity(activity.packageManager) != null) {
-            activity.startActivity(intent)
-          } else {
-            Toast.makeText(activity, "No GitHub URL available", Toast.LENGTH_SHORT).show()
-          }
-        } catch (e: Exception) {
-          Toast.makeText(activity, "Error opening GitHub URL: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+          activity.startActivity(chooser)
+        } catch (e: ActivityNotFoundException) {
+          Toast.makeText(
+            activity,
+            "No app installed can open:\n$githubLink",
+            Toast.LENGTH_LONG
+          ).show()
         }
       }
     }
