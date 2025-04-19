@@ -1,13 +1,23 @@
 package com.example.dummy_database.ui.cardowner
 
-import android.R.attr.onClick
+
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -24,16 +34,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.dummy_database.utils.generateQrCode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await  // (Important) for .await()
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 
 @Composable
@@ -42,10 +53,6 @@ fun CardOwnerScreen(
 ) {
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
-
-    // Remember the last interaction time
-    val scope = rememberCoroutineScope()
-
 
 
     // We’ll store each text field in local state.
@@ -90,6 +97,9 @@ fun CardOwnerScreen(
     // A one‑line summary of why the save failed
     var errorMessage by remember { mutableStateOf("") }
 
+    // Only show QR (and download) when true
+    var qrVisible by remember { mutableStateOf(false) }
+
     // Intercept ANY back‑press and show logout dialog
     BackHandler {
 //        auth.signOut()
@@ -104,6 +114,7 @@ fun CardOwnerScreen(
             try {
                 val docSnap = db.collection("cardholders").document(uid).get().await()
                 if (docSnap.exists()) {
+                    qrVisible = true
                     linkedInUrl = docSnap.getString("linkedInUrl") ?: ""
                     introduction = docSnap.getString("introduction") ?: ""
                     education = docSnap.getString("education") ?: ""
@@ -115,7 +126,9 @@ fun CardOwnerScreen(
                     selectedAvatar = docSnap.getString("avatarId")
                 }
                 // We'll set  uId to the user's UID for the QR code
-                 uId = uid
+//                 uId = uid
+                // only set uId when there's data
+                uId = if(docSnap.exists()) uid else ""
             } catch (e: Exception) {
                 Log.w("CardOwnerScreen", "Error fetching existing doc: ", e)
             }
@@ -367,6 +380,7 @@ fun CardOwnerScreen(
                         Log.d("CardOwnerScreen", "Data saved for user $uid")
                         showSaveSuccess = true
                         errorMessage = ""
+                        qrVisible = true
                     }
                     .addOnFailureListener { e ->
                         Log.w("CardOwnerScreen", "Error saving data", e)
@@ -381,6 +395,8 @@ fun CardOwnerScreen(
             Text("Save")
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
         if (errorMessage.isNotEmpty()) {
             Text(
                 text = errorMessage,
@@ -392,10 +408,36 @@ fun CardOwnerScreen(
 
 
         // If we have a  uId, show the QR code
-        if ( uId.isNotEmpty()) {
-            //Text("QR Code for your ID: $ uId")
-            QrCodeImage( uId =  uId)
+//        if ( qrVisible) {
+//            //Text("QR Code for your ID: $ uId")
+//            QrCodeImage( uId =  uId)
+//        }
+
+        if(qrVisible){
+            // 1) grab the QR bitmap
+            val context = LocalContext.current
+            val qrBitmap = generateQrCode(uId)
+
+            if(qrBitmap != null) {
+                // 2) show the Qr image
+                Image(
+                    bitmap = qrBitmap.asImageBitmap(),
+                    contentDescription = "Your Business Card QR Code",
+//                    modifier = Modifier.padding(top = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 3) DOWNload button
+                Button(onClick = {
+                    saveImageToGallery(context, qrBitmap, "Business_Card")
+                }) {
+                    Text("Download QR Code")
+                }
+            } else{
+                    Text("Failed to generate QR code")
+                }
         }
+
 
 //        // Optionally show a back button
 //        Button(
@@ -414,6 +456,48 @@ fun CardOwnerScreen(
                 Text("Logout")
             }
         }
+    }
+}
+
+// Helper function to save image to gallery
+fun saveImageToGallery(context: Context, bitmap: Bitmap, filename: String) {
+    val fos: OutputStream?
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Use MediaStore on Android 10+
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, "$filename.png")
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/MyApp")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+            val uri: Uri? = context.contentResolver.insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
+            )
+            fos = uri?.let { context.contentResolver.openOutputStream(it) }
+            values.clear()
+            values.put(MediaStore.Images.Media.IS_PENDING, 0)
+            uri?.let { context.contentResolver.update(it, values, null, null) }
+        } else {
+            // Legacy external storage for pre‑Q
+            val imagesDir = Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                .apply { mkdirs() }
+            val imageFile = File(imagesDir, "$filename.png")
+            fos = FileOutputStream(imageFile)
+            // refresh gallery
+            context.sendBroadcast(
+                Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(imageFile))
+            )
+        }
+
+        fos?.use {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+            Toast.makeText(context, "Saved QR code to gallery", Toast.LENGTH_SHORT).show()
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Failed to save QR code: ${e.message}", Toast.LENGTH_LONG).show()
+        Log.e("CardOwnerScreen", "saveImageToGallery error", e)
     }
 }
 
