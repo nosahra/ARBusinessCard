@@ -1,6 +1,7 @@
 package com.example.dummy_database.ui.auth
 
 import android.util.Log
+import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -21,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+
 
 @Composable
 fun AuthScreen(
@@ -34,6 +38,22 @@ fun AuthScreen(
     val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
 
+    // error states
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var generalError by remember { mutableStateOf<String?>(null) }
+
+    var confirmPassword by remember { mutableStateOf("") }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+
+
+    fun isPasswordStrong(pw: String): Boolean {
+        // at least 6 chars, at least one uppercase, at least one digit
+        val regex = Regex("^(?=.*[A-Z])(?=.*\\d).{6,}\$")
+        return regex.matches(pw)
+    }
+
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -44,37 +64,114 @@ fun AuthScreen(
                 .width(IntrinsicSize.Min),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // TITLE
             Text(text = if (isLoginMode) "Login" else "Register")
 
+            // General error (network failure, permission denied, etc)
+            generalError?.let { err ->
+                Text(
+                    text = err,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 8.dp)
+                )
+            }
+
+
+            // Email field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    emailError = null
+                },
                 label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                isError = emailError != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
             )
+            emailError?.let { err ->
+                Text(
+                    text = err,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, top = 4.dp)
+                )
+            }
 
+
+            // Password field
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { password = it
+                                passwordError= null
+                                },
                 label = { Text("Password (min 6 characters)") },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                isError = passwordError != null
             )
+            passwordError?.let { err ->
+                Text(
+                    text = err,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, top = 4.dp)
+                )
+            }
+
+            // only show Confirm Password in Register mode
+            if (!isLoginMode) {
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = {
+                        confirmPassword = it
+                        confirmPasswordError = null
+                    },
+                    label = { Text("Confirm Password") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    isError = confirmPasswordError != null
+                )
+                confirmPasswordError?.let { err ->
+                    Text(
+                        text = err,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+            }
 
             Spacer(Modifier.height(16.dp))
 
             Button(
                 onClick = {
+
+                    // clear old errors
+                    emailError = null
+                    passwordError = null
+                    generalError = null
+
                     // Check that fields are not empty
                     if (email.isBlank() || password.isBlank()) {
                         Toast.makeText(context, "Email and password cannot be empty", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
-
-//                    // Check that password is at least 6 characters
-//                    if (password.length < 6) {
-//                        Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
-//                        return@Button
-//                    }
+                    // Email format check
+                    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailError = "Invalid email format"
+                        return@Button
+                    }
 
 
                     if (isLoginMode) {
@@ -95,15 +192,27 @@ fun AuthScreen(
                                         auth.signOut()
                                     }
                                 } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Login failed: ${task.exception?.message}",
-                                        Toast.LENGTH_LONG
-                                    ).show()
+
+                                        generalError =  "Invalid credentials. Please check email and password."
+                                        Log.e("AuthScreen", "Login failed: ${task.exception?.message}")
                                 }
                             }
                     } else {
+
                         // --- REGISTER FLOW ---
+
+                        // Enforce strong password only on register
+                        if (!isPasswordStrong(password)) {
+                            passwordError = "Password must have at least 6 chars, an uppercase letter & a digit"
+                            return@Button
+                        }
+
+                        // Confirm password
+                        if (password != confirmPassword) {
+                            confirmPasswordError = "Passwords do not match"
+                            return@Button
+                        }
+
                         auth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
@@ -127,11 +236,7 @@ fun AuthScreen(
                                             }
                                         }
                                 } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Registration failed: ${task.exception?.message}",
-                                        Toast.LENGTH_LONG
-                                    ).show()
+                                        generalError = "Registration failed: ${task.exception?.localizedMessage}"
                                 }
                             }
                     }
@@ -162,6 +267,7 @@ fun AuthScreen(
         }
     }
 }
+
 
 fun onBackClick() {
     TODO("Not yet implemented")
