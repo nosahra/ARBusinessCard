@@ -25,29 +25,33 @@ fun HomeScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Welcome to the Business Card App")
+        Text("KNOW ME BETTER")
 
         Button(
             onClick = {
-                val user = FirebaseAuth.getInstance().currentUser
-                if (user == null) {
-                    // Not logged in → go to Auth screen
-                    onNeedAuth()
-                } else {
-                    // Already logged in → go straight to Cardholder
-                    onCardOwnerScreenClick()
-                }
+
+                onNeedAuth()
+
+//                val user = FirebaseAuth.getInstance().currentUser
+//                if (user == null) {
+//                    // Not logged in → go to Auth screen
+//                    onNeedAuth()
+//                } else {
+//                    // Already logged in → go straight to Cardholder
+//                    onCardOwnerScreenClick()
+//
+//                }
             },
             modifier = Modifier.padding(top = 16.dp)
         ) {
-            Text("CardOwner")
+            Text("Create Your Card")
         }
 
         Button(
             onClick = onScannerScreenClick,
             modifier = Modifier.padding(top = 16.dp)
         ) {
-            Text("Scan My Card")
+            Text("Scan A Card")
         }
 
 //        if(FirebaseAuth.getInstance().currentUser != null){
