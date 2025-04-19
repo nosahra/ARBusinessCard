@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -42,16 +43,9 @@ fun CardOwnerScreen(
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
 
-    // Intercept ANY back‑press and force sign‑out
-    BackHandler {
-        auth.signOut()
-        onBackClick()
-    }
-
     // Remember the last interaction time
     val scope = rememberCoroutineScope()
-    var lastInteractionTime by remember { mutableStateOf(System.currentTimeMillis()) }
-    val timeoutMillis = 5 * 60 * 1000L // 5 minutes
+
 
 
     // We’ll store each text field in local state.
@@ -92,6 +86,17 @@ fun CardOwnerScreen(
 
     var showSaveSuccess by remember { mutableStateOf(false) }
 
+    var introductionError by remember { mutableStateOf<String?>(null) }
+    // A one‑line summary of why the save failed
+    var errorMessage by remember { mutableStateOf("") }
+
+    // Intercept ANY back‑press and show logout dialog
+    BackHandler {
+//        auth.signOut()
+//        onBackClick()
+        showLogoutConfirm = true
+    }
+
 
     // When the screen first appears, load existing data
     LaunchedEffect(uid) {
@@ -117,43 +122,11 @@ fun CardOwnerScreen(
         }
     }
 
-    // ----------------------
-    // (4) Inactivity Timer Loop
-    // ----------------------
-    // start a background job that checks inactivity every second.
-    // If inactivity > 5 min, sign out & navigate away
-    LaunchedEffect(Unit) {
-        scope.launch {
-            while (true) {
-                delay(1000) // check every second
-                val now = System.currentTimeMillis()
-                val inactiveTime = now - lastInteractionTime
-
-                if (inactiveTime > timeoutMillis && auth.currentUser != null) {
-                    // Log out user
-                    auth.signOut()
-                    // navigate away
-                    onBackClick()
-                    break // stop the loop
-                }
-            }
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(scrollState)
-            .pointerInput(Unit) {
-                // any activity or touch will reset the timer
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent()
-                lastInteractionTime = System.currentTimeMillis()
-            }
-        }
-    },
+            .verticalScroll(scrollState),
     horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if(showDialog){
@@ -213,7 +186,6 @@ fun CardOwnerScreen(
             value = linkedInUrl,
             onValueChange = {
                 linkedInUrl = it
-                lastInteractionTime = System.currentTimeMillis() //resets on typing
                             },
             label = { Text("LinkedIn URL") },
             modifier = Modifier.padding(top = 16.dp)
@@ -233,10 +205,31 @@ fun CardOwnerScreen(
         }
 
         // Introduction field
+//        OutlinedTextField(
+//            value = introduction,
+//            onValueChange = { introduction = it },
+//            label = { Text("Introduction") },
+//            modifier = Modifier.padding(top = 16.dp)
+//        )
+
         OutlinedTextField(
             value = introduction,
-            onValueChange = { introduction = it },
-            label = { Text("Introduction") },
+            onValueChange = {
+                introduction = it
+                introductionError = null    // clear error as soon as user starts typing
+                errorMessage="Saving failed! Introduction must not be empty."
+            },
+            label     = { Text("Introduction") },
+            isError   = introductionError != null,
+            supportingText = {
+                introductionError?.let { err ->
+                    Text(
+                        text = err,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
             modifier = Modifier.padding(top = 16.dp)
         )
 
@@ -292,7 +285,10 @@ fun CardOwnerScreen(
                 ) {
                     RadioButton(
                         selected = voicePreference == avatarVoice,
-                        onClick = { voicePreference = avatarVoice }
+                        onClick = {
+                            voicePreference = avatarVoice
+//                            errorMessage="Saving failed! Please, select a voice preference."
+                        }
                     )
                     Text(text = avatarVoice)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -313,7 +309,10 @@ fun CardOwnerScreen(
                 ) {
                     RadioButton(
                         selected = selectedAvatar == avatar,
-                        onClick = { selectedAvatar = avatar }
+                        onClick = {
+                            selectedAvatar = avatar
+//                            errorMessage="Saving failed! Please, select an avatar."
+                        }
                     )
                     Text(text = avatar)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -328,6 +327,15 @@ fun CardOwnerScreen(
 //                    Log.w("CardOwnerScreen", "No user logged in. Cannot save.")
 //                    return@Button
 //                }
+                // 1) reset any prior error
+                introductionError = null
+
+                // 2) validate introduction
+                if (introduction.isBlank()) {
+                    introductionError = "Please complete your introduction for your AR business card."
+                    return@Button
+                }
+
                 if (!canSaveAvatar) {
                     // Show Alert Dialog:
                     alertMessage = "Please select an avatar before saving."
@@ -358,13 +366,13 @@ fun CardOwnerScreen(
                         uId = uid  // We know the doc ID is just the UID
                         Log.d("CardOwnerScreen", "Data saved for user $uid")
                         showSaveSuccess = true
+                        errorMessage = ""
                     }
                     .addOnFailureListener { e ->
                         Log.w("CardOwnerScreen", "Error saving data", e)
+                        errorMessage = "Saving failed: unexpected error."
                     }
 
-                // Reset lastInteractionTime
-                lastInteractionTime = System.currentTimeMillis()
 
             }
             },
@@ -372,6 +380,16 @@ fun CardOwnerScreen(
         ) {
             Text("Save")
         }
+
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
 
         // If we have a  uId, show the QR code
         if ( uId.isNotEmpty()) {
