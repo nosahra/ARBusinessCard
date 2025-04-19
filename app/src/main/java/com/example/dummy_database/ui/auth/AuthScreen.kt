@@ -269,6 +269,3 @@ fun AuthScreen(
 }
 
 
-//fun onBackClick() {
-//    TODO("Not yet implemented")
-//}
