@@ -145,7 +145,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     }
 
 
-  // turn into real subtitles once apps merge
+
   val educationButton = root.findViewById<Button>(R.id.education_button)
   val educationText = root.findViewById<TextView>(R.id.education_text)
 
