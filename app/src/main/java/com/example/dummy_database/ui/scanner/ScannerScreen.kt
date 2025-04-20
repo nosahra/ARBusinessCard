@@ -72,7 +72,7 @@ fun ScannerScreen(
                             githubLink = document.getString("githubUrl") ?: ""
                             emailAddress = document.getString("email") ?: ""
                             voicePreference = document.getString("voicePreference") ?: ""
-                            avatarId = document.getString("avatar_id") ?: ""
+                            avatarId = document.getString("avatarId") ?: ""
 
                             // Launch the AR activity directly.
                             val intent = Intent(context, HelloArActivity::class.java).apply {
@@ -84,7 +84,7 @@ fun ScannerScreen(
                                 putExtra("githubUrl", githubLink)
                                 putExtra("email", emailAddress)
                                 putExtra("voicePreference", voicePreference)
-                                putExtra("avatar_id", avatarId)
+                                putExtra("avatarId", avatarId)
 
                             }
                             // Optionally, you can pass extras if needed:

@@ -71,6 +71,9 @@ class HelloArActivity : AppCompatActivity() {
   val voicePreference: String by lazy {
     intent.getStringExtra("voicePreference") ?: ""
   }
+  val avatarId: String by lazy {
+    intent.getStringExtra("avatarId") ?: ""
+  }
 
   // Call this method to trigger TTS for the introduction.
   fun triggerTTSForIntroduction() {
@@ -123,7 +126,7 @@ class HelloArActivity : AppCompatActivity() {
     lifecycle.addObserver(arCoreSessionHelper)
 
     // Set up the Hello AR renderer.
-    renderer = HelloArRenderer(this)
+    renderer = HelloArRenderer(this, avatarId)
     lifecycle.addObserver(renderer)
 
     // Set up Hello AR UI.

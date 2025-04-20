@@ -73,6 +73,9 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   private val introductionText: String by lazy {
     activity.intent.getStringExtra("introduction") ?: "No Introduction Data"
   }
+  private val avatarId: String by lazy {
+    activity.intent.getStringExtra("avatar_id") ?: "default"
+  }
 
   private fun normalizeUrl(raw: String): String {
     val trimmed = raw.trim()

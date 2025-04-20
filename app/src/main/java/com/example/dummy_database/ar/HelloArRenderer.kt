@@ -44,7 +44,7 @@ import com.example.dummy_database.R
 import kotlin.math.sqrt
 
 /** Renders the HelloAR application using our example Renderer. */
-class HelloArRenderer(val activity: HelloArActivity) :
+class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
   SampleRender.Renderer,
     DefaultLifecycleObserver {
   companion object {
@@ -344,12 +344,16 @@ class HelloArRenderer(val activity: HelloArActivity) :
               pointCloudVertexBuffers
           )
 
+
+      val modelName = if (avatarId == "avatar_man") "male" else "female"
       try {
         // Load custom texture
         virtualObjectAlbedoTexture =
             Texture.createFromAsset(
                 render,
-                "models/femaleTex.png",  // Replace with your texture filename
+//                "models/femaleTex.png",  // Replace with your texture filename
+//                "models/maleTex.png",
+              "models/${modelName}Tex.png",
                 Texture.WrapMode.CLAMP_TO_EDGE,
                 Texture.ColorFormat.SRGB
             )
@@ -358,7 +362,9 @@ class HelloArRenderer(val activity: HelloArActivity) :
         virtualObjectMesh =
              Mesh.createFromAsset(
                 render,
-                "models/female.obj"
+//                "models/female.obj"
+//               "models/male.obj"
+                "models/${modelName}.obj"
             )  // Replace with your model filename
         Log.d(TAG, "Custom model loaded successfully")
       } catch (e: IOException) {
