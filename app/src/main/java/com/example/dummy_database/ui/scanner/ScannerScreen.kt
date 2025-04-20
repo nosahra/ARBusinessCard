@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.material3.AlertDialog
 
 import androidx.compose.runtime.*
 import com.example.dummy_database.ar.HelloArActivity
@@ -42,6 +43,7 @@ fun ScannerScreen(
     var emailAddress by remember { mutableStateOf("") }
     var voicePreference by remember { mutableStateOf("") }
     var avatarId by remember { mutableStateOf("") }
+
 
     // Firestore reference
     val db = Firebase.firestore
@@ -88,8 +90,8 @@ fun ScannerScreen(
                             // Optionally, you can pass extras if needed:
                             // intent.putExtra("avatar_id", "default")
                             context.startActivity(intent)
-
-
+                            // Navigate back to the Home screen
+                            onBackClick()
                         } else {
                             Log.w("ScannerScreen", "No such document or doc doesn't exist")
                         }
@@ -103,19 +105,25 @@ fun ScannerScreen(
         }
     )
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Employer Screen")
+    // Launch the QR scanner as soon as we enter this screen
+    LaunchedEffect(Unit) {
+        scannerLauncher.launch(Unit)
+    }
 
-        // Button to launch the QR scanner
-        Button(
-            onClick = { scannerLauncher.launch(Unit) },
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("Scan QR Code")
-        }
+
+//    Column(
+//        modifier = Modifier.fillMaxSize().padding(16.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text("Employer Screen")
+//
+//        // Button to launch the QR scanner
+//        Button(
+//            onClick = { scannerLauncher.launch(Unit) },
+//            modifier = Modifier.padding(top = 16.dp)
+//        ) {
+//            Text("Scan QR Code")
+//        }
 
 //        // If we have a scannedUid, show the data
 //        scannedUid?.let { uid ->
@@ -128,14 +136,17 @@ fun ScannerScreen(
 //            Text("Hobbies: $hobbies")
 //        }
 
-        // Back button
-        Button(
-            onClick = onBackClick,
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("Back")
-        }
-    }
+//        //
+//        Text("Opening camera ...", modifier = Modifier.padding(top = 16.dp))
+//
+//        // Back button
+//        Button(
+//            onClick = onBackClick,
+//            modifier = Modifier.padding(top = 16.dp)
+//        ) {
+//            Text("Back")
+//        }
+//    }
 }
 
 

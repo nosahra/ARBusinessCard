@@ -1,19 +1,30 @@
 package com.example.dummy_database.ui.cardowner
 
-import android.R.attr.onClick
+
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -23,16 +34,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.dummy_database.utils.generateQrCode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await  // (Important) for .await()
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 
 @Composable
@@ -41,17 +53,6 @@ fun CardOwnerScreen(
 ) {
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
-
-    // Intercept ANY back‑press and force sign‑out
-    BackHandler {
-        auth.signOut()
-        onBackClick()
-    }
-
-    // Remember the last interaction time
-    val scope = rememberCoroutineScope()
-    var lastInteractionTime by remember { mutableStateOf(System.currentTimeMillis()) }
-    val timeoutMillis = 5 * 60 * 1000L // 5 minutes
 
 
     // We’ll store each text field in local state.
@@ -92,6 +93,20 @@ fun CardOwnerScreen(
 
     var showSaveSuccess by remember { mutableStateOf(false) }
 
+    var introductionError by remember { mutableStateOf<String?>(null) }
+    // A one‑line summary of why the save failed
+    var errorMessage by remember { mutableStateOf("") }
+
+    // Only show QR (and download) when true
+    var qrVisible by remember { mutableStateOf(false) }
+
+    // Intercept ANY back‑press and show logout dialog
+    BackHandler {
+//        auth.signOut()
+//        onBackClick()
+        showLogoutConfirm = true
+    }
+
 
     // When the screen first appears, load existing data
     LaunchedEffect(uid) {
@@ -99,6 +114,7 @@ fun CardOwnerScreen(
             try {
                 val docSnap = db.collection("cardholders").document(uid).get().await()
                 if (docSnap.exists()) {
+                    qrVisible = true
                     linkedInUrl = docSnap.getString("linkedInUrl") ?: ""
                     introduction = docSnap.getString("introduction") ?: ""
                     education = docSnap.getString("education") ?: ""
@@ -110,32 +126,11 @@ fun CardOwnerScreen(
                     selectedAvatar = docSnap.getString("avatarId")
                 }
                 // We'll set  uId to the user's UID for the QR code
-                 uId = uid
+//                 uId = uid
+                // only set uId when there's data
+                uId = if(docSnap.exists()) uid else ""
             } catch (e: Exception) {
                 Log.w("CardOwnerScreen", "Error fetching existing doc: ", e)
-            }
-        }
-    }
-
-    // ----------------------
-    // (4) Inactivity Timer Loop
-    // ----------------------
-    // start a background job that checks inactivity every second.
-    // If inactivity > 5 min, sign out & navigate away
-    LaunchedEffect(Unit) {
-        scope.launch {
-            while (true) {
-                delay(1000) // check every second
-                val now = System.currentTimeMillis()
-                val inactiveTime = now - lastInteractionTime
-
-                if (inactiveTime > timeoutMillis && auth.currentUser != null) {
-                    // Log out user
-                    auth.signOut()
-                    // navigate away
-                    onBackClick()
-                    break // stop the loop
-                }
             }
         }
     }
@@ -144,16 +139,7 @@ fun CardOwnerScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(scrollState)
-            .pointerInput(Unit) {
-                // any activity or touch will reset the timer
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent()
-                lastInteractionTime = System.currentTimeMillis()
-            }
-        }
-    },
+            .verticalScroll(scrollState),
     horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if(showDialog){
@@ -213,7 +199,6 @@ fun CardOwnerScreen(
             value = linkedInUrl,
             onValueChange = {
                 linkedInUrl = it
-                lastInteractionTime = System.currentTimeMillis() //resets on typing
                             },
             label = { Text("LinkedIn URL") },
             modifier = Modifier.padding(top = 16.dp)
@@ -233,10 +218,32 @@ fun CardOwnerScreen(
         }
 
         // Introduction field
+//        OutlinedTextField(
+//            value = introduction,
+//            onValueChange = { introduction = it },
+//            label = { Text("Introduction") },
+//            modifier = Modifier.padding(top = 16.dp)
+//        )
+
         OutlinedTextField(
             value = introduction,
-            onValueChange = { introduction = it },
-            label = { Text("Introduction") },
+            onValueChange = {
+                introduction = it
+                introductionError = null    // clear error as soon as user starts typing
+//                errorMessage="Saving failed! Introduction must not be empty."
+                errorMessage=""
+            },
+            label     = { Text("Introduction") },
+            isError   = introductionError != null,
+            supportingText = {
+                introductionError?.let { err ->
+                    Text(
+                        text = err,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
             modifier = Modifier.padding(top = 16.dp)
         )
 
@@ -292,7 +299,10 @@ fun CardOwnerScreen(
                 ) {
                     RadioButton(
                         selected = voicePreference == avatarVoice,
-                        onClick = { voicePreference = avatarVoice }
+                        onClick = {
+                            voicePreference = avatarVoice
+//                            errorMessage="Saving failed! Please, select a voice preference."
+                        }
                     )
                     Text(text = avatarVoice)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -313,7 +323,10 @@ fun CardOwnerScreen(
                 ) {
                     RadioButton(
                         selected = selectedAvatar == avatar,
-                        onClick = { selectedAvatar = avatar }
+                        onClick = {
+                            selectedAvatar = avatar
+//                            errorMessage="Saving failed! Please, select an avatar."
+                        }
                     )
                     Text(text = avatar)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -328,6 +341,17 @@ fun CardOwnerScreen(
 //                    Log.w("CardOwnerScreen", "No user logged in. Cannot save.")
 //                    return@Button
 //                }
+                // 1) reset any prior error
+                introductionError = null
+                errorMessage = ""
+
+                // 2) validate introduction
+                if (introduction.isBlank()) {
+                    introductionError = "Please complete your introduction for your AR business card."
+                    errorMessage="Saving failed! Introduction must not be empty."
+                    return@Button
+                }
+
                 if (!canSaveAvatar) {
                     // Show Alert Dialog:
                     alertMessage = "Please select an avatar before saving."
@@ -358,13 +382,14 @@ fun CardOwnerScreen(
                         uId = uid  // We know the doc ID is just the UID
                         Log.d("CardOwnerScreen", "Data saved for user $uid")
                         showSaveSuccess = true
+                        errorMessage = ""
+                        qrVisible = true
                     }
                     .addOnFailureListener { e ->
                         Log.w("CardOwnerScreen", "Error saving data", e)
+                        errorMessage = "Saving failed: unexpected error."
                     }
 
-                // Reset lastInteractionTime
-                lastInteractionTime = System.currentTimeMillis()
 
             }
             },
@@ -373,11 +398,49 @@ fun CardOwnerScreen(
             Text("Save")
         }
 
-        // If we have a  uId, show the QR code
-        if ( uId.isNotEmpty()) {
-            //Text("QR Code for your ID: $ uId")
-            QrCodeImage( uId =  uId)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
+
+
+        // If we have a  uId, show the QR code
+//        if ( qrVisible) {
+//            //Text("QR Code for your ID: $ uId")
+//            QrCodeImage( uId =  uId)
+//        }
+
+        if(qrVisible){
+            // 1) grab the QR bitmap
+            val context = LocalContext.current
+            val qrBitmap = generateQrCode(uId)
+
+            if(qrBitmap != null) {
+                // 2) show the Qr image
+                Image(
+                    bitmap = qrBitmap.asImageBitmap(),
+                    contentDescription = "Your Business Card QR Code",
+//                    modifier = Modifier.padding(top = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 3) DOWNload button
+                Button(onClick = {
+                    saveImageToGallery(context, qrBitmap, "Business_Card")
+                }) {
+                    Text("Download QR Code")
+                }
+            } else{
+                    Text("Failed to generate QR code")
+                }
+        }
+
 
 //        // Optionally show a back button
 //        Button(
@@ -396,6 +459,48 @@ fun CardOwnerScreen(
                 Text("Logout")
             }
         }
+    }
+}
+
+// Helper function to save image to gallery
+fun saveImageToGallery(context: Context, bitmap: Bitmap, filename: String) {
+    val fos: OutputStream?
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Use MediaStore on Android 10+
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, "$filename.png")
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/MyApp")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+            val uri: Uri? = context.contentResolver.insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
+            )
+            fos = uri?.let { context.contentResolver.openOutputStream(it) }
+            values.clear()
+            values.put(MediaStore.Images.Media.IS_PENDING, 0)
+            uri?.let { context.contentResolver.update(it, values, null, null) }
+        } else {
+            // Legacy external storage for pre‑Q
+            val imagesDir = Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                .apply { mkdirs() }
+            val imageFile = File(imagesDir, "$filename.png")
+            fos = FileOutputStream(imageFile)
+            // refresh gallery
+            context.sendBroadcast(
+                Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(imageFile))
+            )
+        }
+
+        fos?.use {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+            Toast.makeText(context, "Saved QR code to gallery", Toast.LENGTH_SHORT).show()
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Failed to save QR code: ${e.message}", Toast.LENGTH_LONG).show()
+        Log.e("CardOwnerScreen", "saveImageToGallery error", e)
     }
 }
 
