@@ -230,7 +230,8 @@ fun CardOwnerScreen(
             onValueChange = {
                 introduction = it
                 introductionError = null    // clear error as soon as user starts typing
-                errorMessage="Saving failed! Introduction must not be empty."
+//                errorMessage="Saving failed! Introduction must not be empty."
+                errorMessage=""
             },
             label     = { Text("Introduction") },
             isError   = introductionError != null,
@@ -342,10 +343,12 @@ fun CardOwnerScreen(
 //                }
                 // 1) reset any prior error
                 introductionError = null
+                errorMessage = ""
 
                 // 2) validate introduction
                 if (introduction.isBlank()) {
                     introductionError = "Please complete your introduction for your AR business card."
+                    errorMessage="Saving failed! Introduction must not be empty."
                     return@Button
                 }
 
