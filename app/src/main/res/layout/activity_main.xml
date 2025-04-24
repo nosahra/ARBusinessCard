@@ -168,4 +168,20 @@
       android:textFontWeight="500"
       android:text="Hobbies" />
 
+  <!-- STOP button to cancel any in-flight TTS -->
+  <Button
+      android:id="@+id/stop_button"
+      android:layout_width="300dip"
+      android:layout_height="50dip"
+      android:visibility="gone"
+      android:layout_centerHorizontal="true"
+      android:layout_above="@id/education_button"
+      android:layout_marginBottom="10dp"
+      android:background="@drawable/rounded_button"
+      android:textSize="20dp"
+      android:textColor="#6E4E4E"
+      android:textFontWeight="500"
+      android:text="Stop" />
+
+
 </RelativeLayout>

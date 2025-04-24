@@ -42,7 +42,7 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.example.dummy_database.tts.synthesizeAndPlay
+import com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay
 
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
