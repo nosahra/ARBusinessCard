@@ -64,6 +64,11 @@ fun CardOwnerScreen(
     var githubUrl by remember { mutableStateOf("") }
     var gmail by remember { mutableStateOf("") }
 
+    var linkedInError by remember { mutableStateOf<String?>(null) }
+    var linkedInFetchError by remember { mutableStateOf<String?>(null) }
+    var githubError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+
     // Radio Button state and options
     var selectedAvatar by remember { mutableStateOf<String?>(null) }
     val avatarOptions = listOf("avatar_man", "avatar_woman")
@@ -105,6 +110,13 @@ fun CardOwnerScreen(
 //        auth.signOut()
 //        onBackClick()
         showLogoutConfirm = true
+    }
+
+    fun isValidHost(url: String, requiredHost: String): Boolean {
+        return try {
+            val h = Uri.parse(url).host ?: return false
+            url.startsWith("http") && h.endsWith(requiredHost)
+        } catch (_: Exception) { false }
     }
 
 
@@ -199,22 +211,58 @@ fun CardOwnerScreen(
             value = linkedInUrl,
             onValueChange = {
                 linkedInUrl = it
+                linkedInError = null    // clear error as soon as user starts typing
                             },
             label = { Text("LinkedIn URL") },
+            isError = linkedInError != null,
+                           supportingText = {
+                                 linkedInError?.let { err ->
+                                      Text(err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                      }
+                                            },
             modifier = Modifier.padding(top = 16.dp)
         )
 
-        // Fetch Button (Just a placeholder for future LinkedIn API logic)
+        // Fetch Button (Just a placeholder for future LinkedIn API logic). Pretends to fetch data.
         Button(
             onClick = {
-                introduction = "Hi, I’m John, a business strategist helping companies scale and thrive. Let’s discuss how I can drive growth for your organization. Let’s connect!"
-                education = "I completed my BSc in Business Administration from University of Toronto."
-                experience = "I worked as a business strategist for 2 years at IBM."
-                hobbies = "I love playing football and learning new things."
+                // clear any prior errors
+                linkedInError = null
+                linkedInFetchError = null
+
+                // validate url
+                if (linkedInUrl.isBlank()) {
+                    // 1) URL empty → show required‐field error
+                    linkedInFetchError = "Please enter your LinkedIn URL."
+                }
+                else if (!isValidHost(linkedInUrl, "linkedin.com")) {
+                    linkedInError = "Must be a valid linkedin.com URL"
+                }
+                else {
+                    // 2) pretend‐fetch → fill the dummies
+                    introduction = "Hi, I’m John, a business strategist helping companies scale and thrive. Let’s discuss how I can drive growth for your organization. Let’s connect!"
+                    education     = "I completed my BSc in Business Administration from University of Toronto."
+                    experience    = "I worked as a business strategist for 2 years at IBM."
+                    hobbies       = "I love playing football and learning new things."
+                    // 3) then show the API‐not‐available message
+                    linkedInFetchError = "LinkedIn API isn’t available. Below fields are filled with placeholder data. Please, update the placeholder data."
+                }
             },
             modifier = Modifier.padding(top = 8.dp)
         ) {
             Text("Fetch from LinkedIn")
+        }
+
+
+        linkedInFetchError?.let { err ->
+            Text(
+                text = err,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .align(Alignment.Start)
+            )
         }
 
         // Introduction field
@@ -274,16 +322,34 @@ fun CardOwnerScreen(
         // github field
         OutlinedTextField(
             value = githubUrl,
-            onValueChange = { githubUrl = it },
-            label = { Text("GitHub URL") },
+            onValueChange = {
+                          githubUrl = it
+                          githubError = null
+                        },
+                    label = { Text("GitHub URL") },
+                    isError = githubError != null,
+                    supportingText = {
+                          githubError?.let { err ->
+                                Text(err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                              }
+                                     },
             modifier = Modifier.padding(top = 16.dp)
         )
         
         // gmail field
         OutlinedTextField(
             value = gmail,
-            onValueChange = { gmail = it },
-            label = { Text("Gmail") },
+            onValueChange = {
+                  gmail = it
+                  emailError = null
+                },
+            label = { Text("Email") },
+            isError = emailError != null,
+            supportingText = {
+                  emailError?.let { err ->
+                        Text(err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                     }
+               },
             modifier = Modifier.padding(top = 16.dp)
         )
 
@@ -344,6 +410,9 @@ fun CardOwnerScreen(
                 // 1) reset any prior error
                 introductionError = null
                 errorMessage = ""
+                linkedInError = null
+                githubError = null
+                emailError = null
 
                 // 2) validate introduction
                 if (introduction.isBlank()) {
@@ -363,6 +432,27 @@ fun CardOwnerScreen(
                     showDialog = true
                 }
                 else{
+
+                  // 3) validate links
+
+
+                  var linkOk = true
+                  if (linkedInUrl.isNotBlank() && !isValidHost(linkedInUrl, "linkedin.com")) {
+                        linkedInError = "Must be a valid linkedin.com URL"
+                        linkOk = false
+                      }
+                  if (githubUrl.isNotBlank() && !isValidHost(githubUrl, "github.com")) {
+                        githubError = "Must be a valid github.com URL"
+                        linkOk = false
+                      }
+                  if (gmail.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(gmail).matches()) {
+                        emailError = "Must be a valid email address"
+                        linkOk = false
+                      }
+                  if (!linkOk) {
+                        errorMessage = "Saving failed! Please fix the highlighted links."
+                        return@Button
+                      }
 
                 val data = mapOf(
                     "linkedInUrl" to linkedInUrl,
