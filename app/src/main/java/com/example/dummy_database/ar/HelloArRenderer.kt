@@ -41,6 +41,7 @@ import com.google.ar.core.Config
 import java.io.InputStream
 import android.view.MotionEvent
 import com.example.dummy_database.R
+import kotlin.math.acos
 import kotlin.math.sqrt
 
 /** Renders the HelloAR application using our example Renderer. */
@@ -133,6 +134,8 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
 
   private val detectedImageIds = mutableSetOf<Int>()
   private val imageAnchors = mutableMapOf<Int, Anchor>()
+
+  private var lastAngleOutputTimeMillis: Long = 0L
 
   override fun onResume(owner: LifecycleOwner) {
     displayRotationHelper.onResume()
@@ -351,7 +354,7 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
         virtualObjectAlbedoTexture =
             Texture.createFromAsset(
                 render,
-//                "models/femaleTex.png",  // Replace with your texture filename
+  //                "models/femaleTex.png",  // Replace with your texture filename
 //                "models/maleTex.png",
               "models/${modelName}Tex.png",
                 Texture.WrapMode.CLAMP_TO_EDGE,
@@ -556,24 +559,35 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
     // Visualize anchors created by touch.
     render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f)
 
-    for ((anchor, trackable) in wrappedAnchors.filter { it.anchor.trackingState == TrackingState.TRACKING }) {
-      // Get the current pose of the anchor.
-      anchor.pose.toMatrix(modelMatrix, 0)
+    val currentTime = System.currentTimeMillis()
+    for (wrapped in wrappedAnchors.filter { it.anchor.trackingState == TrackingState.TRACKING }) {
+      val currentRotation = wrapped.anchor.pose.rotationQuaternion
+      val angleDiff = quaternionAngleDifference(wrapped.initialRotationQuaternion, currentRotation)
+      val elapsedTime = (currentTime - wrapped.creationTimeMillis) / 1000f
 
-      // Apply scaling based on the type of trackable.
-      when (trackable) {
-        is AugmentedImage -> {
-          // Use a smaller scale for image anchors.
-            Matrix.scaleM(modelMatrix, 0, 0.5f, 0.5f, 0.5f)
-        }
-        else -> {
-            Matrix.scaleM(modelMatrix, 0, 3.0f, 3.0f, 3.0f)
+      // Log angle every 2 seconds
+      if (currentTime - lastAngleOutputTimeMillis >= 2000) {
+        lastAngleOutputTimeMillis = currentTime
+        Log.d(TAG, "Angle difference: $angleDiff°")
+      }
+
+      if (angleDiff > 25f && elapsedTime <= 2f && !wrapped.poseRotationChangedShown) {
+        wrapped.poseRotationChangedShown = true
+        activity.runOnUiThread {
+          Toast.makeText(activity, "Model rotated significantly within 2 seconds", Toast.LENGTH_SHORT).show()
         }
       }
 
-      // Calculate model/view/projection matrices for the female model.
-        Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0)
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
+      wrapped.anchor.pose.toMatrix(modelMatrix, 0)
+
+      // Scale based on trackable type
+      when (wrapped.trackable) {
+        is AugmentedImage -> Matrix.scaleM(modelMatrix, 0, 0.5f, 0.5f, 0.5f)
+        else -> Matrix.scaleM(modelMatrix, 0, 3.0f, 3.0f, 3.0f)
+      }
+
+      Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0)
+      Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
       virtualObjectShader.setMat4("u_ModelView", modelViewMatrix)
       virtualObjectShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix)
       virtualObjectShader.setTexture("u_AlbedoTexture", virtualObjectAlbedoTexture)
@@ -705,6 +719,12 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
     }
   }
 
+  private fun quaternionAngleDifference(q1: FloatArray, q2: FloatArray): Float {
+    // Dot product of unit quaternions gives cos(theta/2)
+    val dot = q1.zip(q2).sumOf { (a, b) -> (a * b).toDouble() }
+    return (2 * Math.toDegrees(acos(dot.toDouble()))).toFloat()
+  }
+
   private fun showError(errorMessage: String) =
     activity.view.snackbarHelper.showError(activity, errorMessage)
 }
@@ -717,4 +737,7 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
 private data class WrappedAnchor(
   val anchor: Anchor,
   val trackable: Trackable,
+  val initialRotationQuaternion: FloatArray = anchor.pose.rotationQuaternion,
+  var poseRotationChangedShown: Boolean = false,
+  val creationTimeMillis: Long = System.currentTimeMillis()
 )
