@@ -39,6 +39,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
+
+
 /** Contains UI elements for Hello AR. */
 class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val root = View.inflate(activity, R.layout.activity_main, null)
@@ -152,6 +154,16 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val educationButton = root.findViewById<Button>(R.id.education_button)
   val educationText = root.findViewById<TextView>(R.id.education_text)
 
+  private val stopButton: Button = root.findViewById<Button>(R.id.stop_button).apply {
+    visibility = View.GONE
+    setOnClickListener {
+      // stop playback *and* hide ourselves
+      com.example.dummy_database.tts.TTSUtil.stop()
+      visibility = View.GONE
+    }
+  }
+
+
   init {
     educationButton.setOnClickListener {
       educationText.text = educationTextFetch
@@ -161,11 +173,17 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       }, 5000)
       // Trigger TTS for Education:
       activity.lifecycleScope.launch(Dispatchers.IO) {
-        com.example.dummy_database.tts.synthesizeAndPlay(
+        com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
           educationTextFetch,
           // Use the voice preference fetched from the Intent extra
-          activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
+          activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
+          onStart = {
+            stopButton.visibility = View.VISIBLE
+          },
+          onComplete = {
+            stopButton.visibility = View.GONE
+          }
         )
       }
     }
@@ -183,10 +201,16 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       }, 5000)
       // Trigger TTS for Experience:
       activity.lifecycleScope.launch(Dispatchers.IO) {
-        com.example.dummy_database.tts.synthesizeAndPlay(
+        com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
           experienceTextFetch,
-          activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
+          activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
+          onStart = {
+            stopButton.visibility = View.VISIBLE
+          },
+          onComplete = {
+            stopButton.visibility = View.GONE
+          }
         )
       }
     }
@@ -205,10 +229,16 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       }, 5000)
       // Trigger TTS for Hobbies:
       activity.lifecycleScope.launch(Dispatchers.IO) {
-        com.example.dummy_database.tts.synthesizeAndPlay(
+        com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
           hobbiesTextFetch,
-          activity.intent.getStringExtra("voicePreference") ?: "FEMALE"
+          activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
+          onStart = {
+            stopButton.visibility = View.VISIBLE
+          },
+          onComplete = {
+            stopButton.visibility = View.GONE
+          }
         )
       }
     }
@@ -221,6 +251,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     educationButton.visibility = View.VISIBLE
     experienceButton.visibility = View.VISIBLE
     hobbiesButton.visibility = View.VISIBLE
+    stopButton.visibility = View.GONE
   }
 
   val session
