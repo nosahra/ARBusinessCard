@@ -12,13 +12,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.graphics.Color
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.layout.fillMaxWidth
+
 import androidx.compose.material3.AlertDialog
 
 import androidx.compose.runtime.*
 import com.example.dummy_database.ar.HelloArActivity
+import com.example.dummy_database.ui.network.ConnectivityStatus
+import com.example.dummy_database.ui.network.rememberConnectivityState
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -105,9 +112,36 @@ fun ScannerScreen(
         }
     )
 
+
+    // now yields ConnectivityStatus.Available or .Unavailable
+    val connectivityStatus = rememberConnectivityState()
+
     // Launch the QR scanner as soon as we enter this screen
-    LaunchedEffect(Unit) {
-        scannerLauncher.launch(Unit)
+//    LaunchedEffect(Unit) {
+//        scannerLauncher.launch(Unit)
+//    }
+
+    // only fire the camera‐launch effect when we go from Unavailable → Available
+    LaunchedEffect(connectivityStatus) {
+        if (connectivityStatus == ConnectivityStatus.Available) {
+            scannerLauncher.launch(Unit)
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (connectivityStatus == ConnectivityStatus.Unavailable) {
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = { scannerLauncher.launch(Unit) }) {
+                Text("Retry")
+            }
+        } else {
+            Text("Opening camera…")
+        }
     }
 
 

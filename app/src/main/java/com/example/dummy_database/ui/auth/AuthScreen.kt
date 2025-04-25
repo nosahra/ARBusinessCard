@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.dummy_database.ui.network.ConnectivityStatus
+import com.example.dummy_database.ui.network.rememberConnectivityState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 
@@ -37,6 +39,9 @@ fun AuthScreen(
 
     val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+
+    // now yields ConnectivityStatus.Available or .Unavailable
+    val connectivityStatus = rememberConnectivityState()
 
     // error states
     var passwordError by remember { mutableStateOf<String?>(null) }
@@ -162,6 +167,10 @@ fun AuthScreen(
                     passwordError = null
                     generalError = null
 
+                    if (connectivityStatus == ConnectivityStatus.Unavailable) {
+                        generalError = "No network - please go online and try again."
+                    }
+
                     // Check that fields are not empty
                     if (email.isBlank() || password.isBlank()) {
                         Toast.makeText(context, "Email and password cannot be empty", Toast.LENGTH_SHORT).show()
@@ -192,8 +201,13 @@ fun AuthScreen(
                                         auth.signOut()
                                     }
                                 } else {
-
-                                        generalError =  "Invalid credentials. Please check email and password."
+                                        val exception = task.exception
+                                        generalError = when (exception) {
+                                            is com.google.firebase.FirebaseNetworkException ->
+                                                "No network - please go online and try again."
+                                            else ->
+                                                "Invalid credentials. Please check email & password."
+                                        }
                                         Log.e("AuthScreen", "Login failed: ${task.exception?.message}")
                                 }
                             }
@@ -236,7 +250,13 @@ fun AuthScreen(
                                             }
                                         }
                                 } else {
-                                        generalError = "Registration failed: ${task.exception?.localizedMessage}"
+                                        val exception = task.exception
+                                        generalError = when (exception) {
+                                            is com.google.firebase.FirebaseNetworkException ->
+                                                "No network - please go online and try again."
+                                            else ->
+                                                "Registration failed: ${exception?.localizedMessage}"
+                                        }
                                 }
                             }
                     }

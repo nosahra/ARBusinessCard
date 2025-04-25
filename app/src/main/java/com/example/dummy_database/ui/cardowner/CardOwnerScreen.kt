@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.dummy_database.ui.network.ConnectivityStatus
+import com.example.dummy_database.ui.network.rememberConnectivityState
 import com.example.dummy_database.utils.generateQrCode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
@@ -47,12 +49,17 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 
+
+
 @Composable
 fun CardOwnerScreen(
     onBackClick: () -> Unit
 ) {
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
+
+    // now yields ConnectivityStatus.Available or .Unavailable
+    val connectivityStatus = rememberConnectivityState()
 
 
     // We’ll store each text field in local state.
@@ -68,6 +75,7 @@ fun CardOwnerScreen(
     var linkedInFetchError by remember { mutableStateOf<String?>(null) }
     var githubError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
+
 
     // Radio Button state and options
     var selectedAvatar by remember { mutableStateOf<String?>(null) }
@@ -112,12 +120,33 @@ fun CardOwnerScreen(
         showLogoutConfirm = true
     }
 
-    fun isValidHost(url: String, requiredHost: String): Boolean {
+//    fun isValidHost(url: String, requiredHost: String): Boolean {
+//        return try {
+//            val h = url.toUri().host ?: return false
+//            url.startsWith("http") && h.endsWith(requiredHost)
+//        } catch (_: Exception) { false }
+//    }
+
+    /**
+     * Returns true if [url] points at a host that is exactly
+     * `requiredHost` or ends in `.` + `requiredHost`.
+     * Automatically adds “https://” if no scheme is present.
+     */
+    fun isValidHost(rawUrl: String, requiredHost: String): Boolean {
         return try {
-            val h = Uri.parse(url).host ?: return false
-            url.startsWith("http") && h.endsWith(requiredHost)
-        } catch (_: Exception) { false }
+            // If the user forgot "http", add it so Uri.parse().host works:
+            val normalized = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+                rawUrl
+            } else {
+                "https://$rawUrl"
+            }
+            val host = Uri.parse(normalized).host?.lowercase() ?: return false
+            host == requiredHost || host.endsWith(".$requiredHost")
+        } catch (_: Exception) {
+            false
+        }
     }
+
 
 
     // When the screen first appears, load existing data
@@ -414,6 +443,11 @@ fun CardOwnerScreen(
                 githubError = null
                 emailError = null
 
+                if(connectivityStatus == ConnectivityStatus.Unavailable){
+                    errorMessage = "Saving failed! Please go online and try again."
+                    return@Button
+                }
+
                 // 2) validate introduction
                 if (introduction.isBlank()) {
                     introductionError = "Please complete your introduction for your AR business card."
@@ -477,7 +511,12 @@ fun CardOwnerScreen(
                     }
                     .addOnFailureListener { e ->
                         Log.w("CardOwnerScreen", "Error saving data", e)
-                        errorMessage = "Saving failed: unexpected error."
+                        errorMessage = when (e) {
+                            is com.google.firebase.FirebaseNetworkException ->
+                                "Saving failed! Please go online and try again."
+                            else ->
+                                "Saving failed: ${e.localizedMessage ?: "Unknown error"}"
+                        }
                     }
 
 
