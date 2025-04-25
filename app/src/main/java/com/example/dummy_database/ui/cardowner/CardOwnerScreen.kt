@@ -47,6 +47,8 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 
+
+
 @Composable
 fun CardOwnerScreen(
     onBackClick: () -> Unit
@@ -112,12 +114,33 @@ fun CardOwnerScreen(
         showLogoutConfirm = true
     }
 
-    fun isValidHost(url: String, requiredHost: String): Boolean {
+//    fun isValidHost(url: String, requiredHost: String): Boolean {
+//        return try {
+//            val h = url.toUri().host ?: return false
+//            url.startsWith("http") && h.endsWith(requiredHost)
+//        } catch (_: Exception) { false }
+//    }
+
+    /**
+     * Returns true if [url] points at a host that is exactly
+     * `requiredHost` or ends in `.` + `requiredHost`.
+     * Automatically adds “https://” if no scheme is present.
+     */
+    fun isValidHost(rawUrl: String, requiredHost: String): Boolean {
         return try {
-            val h = Uri.parse(url).host ?: return false
-            url.startsWith("http") && h.endsWith(requiredHost)
-        } catch (_: Exception) { false }
+            // If the user forgot "http", add it so Uri.parse().host works:
+            val normalized = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+                rawUrl
+            } else {
+                "https://$rawUrl"
+            }
+            val host = Uri.parse(normalized).host?.lowercase() ?: return false
+            host == requiredHost || host.endsWith(".$requiredHost")
+        } catch (_: Exception) {
+            false
+        }
     }
+
 
 
     // When the screen first appears, load existing data

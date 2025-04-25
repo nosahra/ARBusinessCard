@@ -20,11 +20,25 @@
     android:layout_height="match_parent"
     tools:context="com.example.dummy_database.ar.HelloArActivity">
 
+  <TextView
+      android:id="@+id/offline_banner"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="#D32F2F"
+      android:textColor="#FFFFFF"
+      android:height="40dp"
+      android:padding="10dp"
+      android:visibility="gone"
+      android:text="You are offline! To listen to TTS, please connect to the internet."/>
+
+
+
   <android.opengl.GLSurfaceView
       android:id="@+id/surfaceview"
       android:layout_width="fill_parent"
       android:layout_height="fill_parent"
-      android:layout_gravity="top" />
+      android:layout_gravity="top"
+      android:layout_below="@id/offline_banner"/>
 
   <ImageButton
       android:id="@+id/settings_button"
@@ -182,6 +196,7 @@
       android:textColor="#6E4E4E"
       android:textFontWeight="500"
       android:text="Stop" />
+
 
 
 </RelativeLayout>

@@ -38,6 +38,10 @@ import com.example.dummy_database.ar.helpers.TapHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+import com.example.dummy_database.ui.network.NetworkConnectivityObserver
+import com.example.dummy_database.ui.network.ConnectivityStatus
+import kotlinx.coroutines.flow.collect
+
 
 
 
@@ -105,6 +109,37 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
 
   private val voicePreference: String by lazy {
     activity.intent.getStringExtra("voicePreference") ?: "No Voice Preference"
+  }
+
+  private val offlineBanner: TextView =
+    root.findViewById(R.id.offline_banner)
+
+  // Use your existing lifecycleScope on the Activity
+  private val connectivityObserver = NetworkConnectivityObserver(activity)
+
+  override fun onResume(owner: LifecycleOwner) {
+    super.onResume(owner)
+    surfaceView.onResume()
+
+    // start observing connectivity
+    activity.lifecycleScope.launchWhenResumed {
+      connectivityObserver.observe().collect { status ->
+        if (status == ConnectivityStatus.Available) {
+          // hide banner
+          offlineBanner.visibility = View.GONE
+        } else {
+          // show banner with your custom text
+          offlineBanner.text =
+            "You are offline! To listen to TTS, please connect to the internet."
+          offlineBanner.visibility = View.VISIBLE
+        }
+      }
+    }
+  }
+
+  override fun onPause(owner: LifecycleOwner) {
+    super.onPause(owner)
+    surfaceView.onPause()
   }
 
   val linkedInButton =
@@ -260,13 +295,13 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val snackbarHelper = SnackbarHelper()
   val tapHelper = TapHelper(activity).also { surfaceView.setOnTouchListener(it) }
 
-  override fun onResume(owner: LifecycleOwner) {
-    surfaceView.onResume()
-  }
-
-  override fun onPause(owner: LifecycleOwner) {
-    surfaceView.onPause()
-  }
+//  override fun onResume(owner: LifecycleOwner) {
+//    surfaceView.onResume()
+//  }
+//
+//  override fun onPause(owner: LifecycleOwner) {
+//    surfaceView.onPause()
+//  }
 
   /**
    * Shows a pop-up dialog on the first tap in HelloARRenderer, determining whether the user wants

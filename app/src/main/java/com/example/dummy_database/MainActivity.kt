@@ -18,6 +18,7 @@ import com.example.dummy_database.ui.navigation.AppDestinations.AUTH_ROUTE
 import com.example.dummy_database.ui.cardowner.CardOwnerScreen
 import com.example.dummy_database.ui.scanner.ScannerScreen
 import com.example.dummy_database.ui.home.HomeScreen
+import com.example.dummy_database.ui.network.ConnectivityLayout
 import com.example.dummy_database.ui.theme.Dummy_DatabaseTheme
 
 class MainActivity : ComponentActivity() {
@@ -36,39 +37,41 @@ fun MyApp() {
     val navController = rememberNavController()
 
     Surface(color = MaterialTheme.colorScheme.background) {
-        NavHost(
-            navController = navController,
-            startDestination = HOME_ROUTE
-        ) {
-            composable(HOME_ROUTE) {
-                HomeScreen(
-                    onCardOwnerScreenClick = { navController.navigate(CARDOWNER_ROUTE) },
-                    onScannerScreenClick = { navController.navigate(SCANNER_ROUTE) },
-                    onNeedAuth = { navController.navigate(AUTH_ROUTE) }
-                )
-            }
-            composable(CARDOWNER_ROUTE) {
-                CardOwnerScreen(
-                    onBackClick = { navController.navigateUp() }
-                )
-            }
-            composable(SCANNER_ROUTE) {
-                ScannerScreen(
-                    onBackClick = { navController.navigateUp() }
-                )
-            }
+        ConnectivityLayout {
+            NavHost(
+                navController = navController,
+                startDestination = HOME_ROUTE
+            ) {
+                composable(HOME_ROUTE) {
+                    HomeScreen(
+                        onCardOwnerScreenClick = { navController.navigate(CARDOWNER_ROUTE) },
+                        onScannerScreenClick = { navController.navigate(SCANNER_ROUTE) },
+                        onNeedAuth = { navController.navigate(AUTH_ROUTE) }
+                    )
+                }
+                composable(CARDOWNER_ROUTE) {
+                    CardOwnerScreen(
+                        onBackClick = { navController.navigateUp() }
+                    )
+                }
+                composable(SCANNER_ROUTE) {
+                    ScannerScreen(
+                        onBackClick = { navController.navigateUp() }
+                    )
+                }
 
-            composable(AUTH_ROUTE) {
-                AuthScreen(
-                    onAuthSuccess = {
-                        // Once the user logs in, go back to Home
-                        navController.navigate(CARDOWNER_ROUTE) {
-                            // remove Auth screen from back stack
-                            popUpTo(AUTH_ROUTE) { inclusive = true }
-                        }
-                    },
-                    onBackClick = { navController.navigateUp() }
-                )
+                composable(AUTH_ROUTE) {
+                    AuthScreen(
+                        onAuthSuccess = {
+                            // Once the user logs in, go back to Home
+                            navController.navigate(CARDOWNER_ROUTE) {
+                                // remove Auth screen from back stack
+                                popUpTo(AUTH_ROUTE) { inclusive = true }
+                            }
+                        },
+                        onBackClick = { navController.navigateUp() }
+                    )
+                }
             }
         }
     }
