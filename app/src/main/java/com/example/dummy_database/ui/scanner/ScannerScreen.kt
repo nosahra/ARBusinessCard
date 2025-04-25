@@ -131,12 +131,13 @@ fun ScannerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (connectivityStatus == ConnectivityStatus.Unavailable) {
             Spacer(Modifier.height(8.dp))
             Button(onClick = { scannerLauncher.launch(Unit) }) {
-                Text("Retry scan")
+                Text("Retry")
             }
         } else {
             Text("Opening camera…")

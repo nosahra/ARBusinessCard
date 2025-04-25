@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.dummy_database.ui.network.ConnectivityStatus
+import com.example.dummy_database.ui.network.rememberConnectivityState
 import com.example.dummy_database.utils.generateQrCode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
@@ -56,6 +58,9 @@ fun CardOwnerScreen(
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
 
+    // now yields ConnectivityStatus.Available or .Unavailable
+    val connectivityStatus = rememberConnectivityState()
+
 
     // We’ll store each text field in local state.
     var linkedInUrl by remember { mutableStateOf("") }
@@ -70,6 +75,7 @@ fun CardOwnerScreen(
     var linkedInFetchError by remember { mutableStateOf<String?>(null) }
     var githubError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
+
 
     // Radio Button state and options
     var selectedAvatar by remember { mutableStateOf<String?>(null) }
@@ -437,6 +443,11 @@ fun CardOwnerScreen(
                 githubError = null
                 emailError = null
 
+                if(connectivityStatus == ConnectivityStatus.Unavailable){
+                    errorMessage = "Saving failed! Please go online and try again."
+                    return@Button
+                }
+
                 // 2) validate introduction
                 if (introduction.isBlank()) {
                     introductionError = "Please complete your introduction for your AR business card."
@@ -500,7 +511,12 @@ fun CardOwnerScreen(
                     }
                     .addOnFailureListener { e ->
                         Log.w("CardOwnerScreen", "Error saving data", e)
-                        errorMessage = "Saving failed: unexpected error."
+                        errorMessage = when (e) {
+                            is com.google.firebase.FirebaseNetworkException ->
+                                "Saving failed! Please go online and try again."
+                            else ->
+                                "Saving failed: ${e.localizedMessage ?: "Unknown error"}"
+                        }
                     }
 
 
