@@ -356,7 +356,7 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
                 render,
   //                "models/femaleTex.png",  // Replace with your texture filename
 //                "models/maleTex.png",
-              "models/${modelName}Tex.png",
+              "models/${modelName}Tex2.png",
                 Texture.WrapMode.CLAMP_TO_EDGE,
                 Texture.ColorFormat.SRGB
             )
@@ -367,7 +367,7 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
                 render,
 //                "models/female.obj"
 //               "models/male.obj"
-                "models/${modelName}.obj"
+                "models/${modelName}2.obj"
             )  // Replace with your model filename
         Log.d(TAG, "Custom model loaded successfully")
       } catch (e: IOException) {
