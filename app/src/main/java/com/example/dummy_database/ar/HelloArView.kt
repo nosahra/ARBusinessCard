@@ -114,7 +114,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   private val offlineBanner: TextView =
     root.findViewById(R.id.offline_banner)
 
-  // Use your existing lifecycleScope on the Activity
+  // Use existing lifecycleScope on the Activity
   private val connectivityObserver = NetworkConnectivityObserver(activity)
 
   override fun onResume(owner: LifecycleOwner) {

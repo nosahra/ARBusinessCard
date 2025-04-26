@@ -62,7 +62,7 @@ fun CardOwnerScreen(
     val connectivityStatus = rememberConnectivityState()
 
 
-    // We’ll store each text field in local state.
+    // store each text field in local state.
     var linkedInUrl by remember { mutableStateOf("") }
     var introduction by remember { mutableStateOf("") }
     var education by remember { mutableStateOf("") }
@@ -87,7 +87,7 @@ fun CardOwnerScreen(
     // The user's UID (document ID)
     val uid = auth.currentUser?.uid ?: ""
 
-    // We'll store  uId in local state (could just use uid directly)
+    // store  uId in local state (could just use uid directly)
     var  uId by remember { mutableStateOf("") }
 
     // For scrolling if fields get long
@@ -166,7 +166,7 @@ fun CardOwnerScreen(
                     voicePreference = docSnap.getString("voicePreference")
                     selectedAvatar = docSnap.getString("avatarId")
                 }
-                // We'll set  uId to the user's UID for the QR code
+                // set  uId to the user's UID for the QR code
 //                 uId = uid
                 // only set uId when there's data
                 uId = if(docSnap.exists()) uid else ""
