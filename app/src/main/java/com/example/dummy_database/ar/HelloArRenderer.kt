@@ -354,7 +354,7 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
         virtualObjectAlbedoTexture =
             Texture.createFromAsset(
                 render,
-  //                "models/femaleTex.png",  // Replace with your texture filename
+  //                "models/femaleTex.png",
 //                "models/maleTex.png",
               "models/${modelName}Tex2.png",
                 Texture.WrapMode.CLAMP_TO_EDGE,
@@ -386,7 +386,9 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
       val virtualObjectPbrTexture =
            Texture.createFromAsset(
               render,
-              "models/pawn_roughness_metallic_ao.png",
+             //                "models/femaleTex.png",  // Replace with your texture filename
+//                "models/maleTex.png",
+              "models/${modelName}_roughness_metallic_ao.png",
                Texture.WrapMode.CLAMP_TO_EDGE,
                Texture.ColorFormat.LINEAR
           )
