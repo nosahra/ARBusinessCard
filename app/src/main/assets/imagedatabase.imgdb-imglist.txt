@@ -1,2 +1,6 @@
-playingCard|C:\Users\ourse\AndroidStudioProjects\WORKING_hello_ar_kotlin\app\src\main\assets\images\playingcard.jpeg|0.065
-QRcard|C:\Users\ourse\AndroidStudioProjects\WORKING_hello_ar_kotlin\app\src\main\assets\images\QRcard.jpeg|0.065
+playingCard|C:\Users\ourse\AndroidStudioProjects\Dummy_Database\app\src\main\assets\images\playingcard.jpeg|0.065
+QRcard|C:\Users\ourse\AndroidStudioProjects\Dummy_Database\app\src\main\assets\images\QRcard.jpeg|0.065
+card|C:\Users\ourse\AndroidStudioProjects\Dummy_Database\app\src\main\assets\images\QRcard.jpeg|0.065
+colourOption1|C:\Users\ourse\AndroidStudioProjects\Dummy_Database\app\src\main\assets\images\colourOption1.png|0.065
+colourOption2|C:\Users\ourse\AndroidStudioProjects\Dummy_Database\app\src\main\assets\images\colourOption2.png|0.065
+colourOption3|C:\Users\ourse\AndroidStudioProjects\Dummy_Database\app\src\main\assets\images\colourOption3.png|0.065
