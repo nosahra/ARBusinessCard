@@ -94,7 +94,7 @@ fun ScannerScreen(
                                 putExtra("avatarId", avatarId)
 
                             }
-                            // Optionally, you can pass extras if needed:
+                            // Optionally, pass extras if needed:
                             // intent.putExtra("avatar_id", "default")
                             context.startActivity(intent)
                             // Navigate back to the Home screen
