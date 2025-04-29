@@ -66,7 +66,7 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
         0.136569f
       )
 
-    private val Z_NEAR = 0.1f
+    private val Z_NEAR = 0.01f
     private val Z_FAR = 100f
 
     // Assumed distance from the device camera to the surface on which user will try to place
