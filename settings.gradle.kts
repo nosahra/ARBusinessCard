@@ -20,6 +20,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Dummy_Database"
+rootProject.name = "Know_ME_Better"
 include(":app")
  

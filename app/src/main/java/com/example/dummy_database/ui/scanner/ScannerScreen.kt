@@ -144,43 +144,6 @@ fun ScannerScreen(
         }
     }
 
-
-//    Column(
-//        modifier = Modifier.fillMaxSize().padding(16.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Text("Employer Screen")
-//
-//        // Button to launch the QR scanner
-//        Button(
-//            onClick = { scannerLauncher.launch(Unit) },
-//            modifier = Modifier.padding(top = 16.dp)
-//        ) {
-//            Text("Scan QR Code")
-//        }
-
-//        // If we have a scannedUid, show the data
-//        scannedUid?.let { uid ->
-//            Text("Scanned User ID: $uid")
-//
-//            // For now, just display the fields
-//            Text("Introduction: $introduction")
-//            Text("Education: $education")
-//            Text("Experience: $experience")
-//            Text("Hobbies: $hobbies")
-//        }
-
-//        //
-//        Text("Opening camera ...", modifier = Modifier.padding(top = 16.dp))
-//
-//        // Back button
-//        Button(
-//            onClick = onBackClick,
-//            modifier = Modifier.padding(top = 16.dp)
-//        ) {
-//            Text("Back")
-//        }
-//    }
 }
 
 
