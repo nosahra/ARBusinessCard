@@ -49,6 +49,21 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 
+fun isValidHost(rawUrl: String, requiredHost: String): Boolean {
+    return try {
+        // If the user forgot "http", add it so Uri.parse().host works:
+        val normalized = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+            rawUrl
+        } else {
+            "https://$rawUrl"
+        }
+        val host = Uri.parse(normalized).host?.lowercase() ?: return false
+        host == requiredHost || host.endsWith(".$requiredHost")
+    } catch (_: Exception) {
+        false
+    }
+}
+
 
 
 @Composable
@@ -132,20 +147,6 @@ fun CardOwnerScreen(
      * `requiredHost` or ends in `.` + `requiredHost`.
      * Automatically adds “https://” if no scheme is present.
      */
-    fun isValidHost(rawUrl: String, requiredHost: String): Boolean {
-        return try {
-            // If the user forgot "http", add it so Uri.parse().host works:
-            val normalized = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
-                rawUrl
-            } else {
-                "https://$rawUrl"
-            }
-            val host = Uri.parse(normalized).host?.lowercase() ?: return false
-            host == requiredHost || host.endsWith(".$requiredHost")
-        } catch (_: Exception) {
-            false
-        }
-    }
 
 
 
