@@ -2,7 +2,10 @@ package com.example.dummy_database.ui.cardowner
 
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class isValidHostTest {
 
     @Test fun `valid plain host`() {
@@ -26,3 +29,4 @@ class isValidHostTest {
         assertFalse(isValidHost("::::", "example.com"))
     }
 }
+

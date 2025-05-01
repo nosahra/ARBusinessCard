@@ -74,13 +74,6 @@ dependencies {
     // The BOM (Bill of Materials) aligns all Firebase library versions automatically
     implementation(platform(libs.firebase.bom))
     // Firestore
-    // implementation(libs.firebase.firestore)
-    // (Optional) Firebase Auth if you plan to do sign in
-    // implementation("com.google.firebase:firebase-auth")
-    // (Optional) If you use Realtime Database
-    // implementation(libs.firebase.database.ktx)
-    // Import the BoM for the Firebase platform
-
     // Declare the dependencies for Firebase products
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
@@ -131,6 +124,10 @@ dependencies {
     // Coroutines Testing (Works with JUnit 4)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3") // Adjust version if needed
 
+    // Robolectric gives you a fake Android runtime so Uri.parse() works in unit tests.
+
+
+    testImplementation("org.robolectric:robolectric:4.11.1")
 
 
 
