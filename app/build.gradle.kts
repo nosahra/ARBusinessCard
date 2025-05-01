@@ -51,6 +51,7 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
 }
 
 dependencies {
@@ -63,13 +64,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
-    testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -121,5 +119,35 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
+    testImplementation(libs.junit)
+
+    // Mockito Core (Works with JUnit 4)
+    testImplementation("org.mockito:mockito-core:5.11.0") // Use desired version
+
+    // Mockito-Kotlin (Works with JUnit 4)
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1") // Use desired version
+
+    // Coroutines Testing (Works with JUnit 4)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3") // Adjust version if needed
+
+
+
+
+    // Optional: Mockito-inline (usually needed only for mocking final classes/methods if not using Mockito 5+)
+    // testImplementation("org.mockito:mockito-inline:5.11.0")
+
+    // --- END: Unit Test Dependencies ---
+
+
+    // --- Android Test Dependencies (Remain unchanged) ---
+    androidTestImplementation(libs.androidx.junit) // For instrumented tests
+    androidTestImplementation(libs.androidx.espresso.core) // For instrumented tests
+    androidTestImplementation(platform(libs.androidx.compose.bom)) // For instrumented tests
+    androidTestImplementation(libs.androidx.ui.test.junit4) // For instrumented tests
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+    // --- End Android Test Dependencies ---
+
 }
 

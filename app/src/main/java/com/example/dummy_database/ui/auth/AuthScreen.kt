@@ -28,11 +28,18 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 
 
+fun isPasswordStrong(pw: String): Boolean {
+    // at least 6 chars, at least one uppercase, at least one digit
+    val regex = Regex("^(?=.*[A-Z])(?=.*\\d).{6,}\$")
+    return regex.matches(pw)
+}
+
 @Composable
 fun AuthScreen(
     onAuthSuccess: () -> Unit,
     onBackClick: () -> Unit
 ) {
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoginMode by remember { mutableStateOf(true) }  // Toggle between login/register
@@ -52,11 +59,6 @@ fun AuthScreen(
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
 
-    fun isPasswordStrong(pw: String): Boolean {
-        // at least 6 chars, at least one uppercase, at least one digit
-        val regex = Regex("^(?=.*[A-Z])(?=.*\\d).{6,}\$")
-        return regex.matches(pw)
-    }
 
 
     Box(
