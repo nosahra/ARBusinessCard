@@ -82,6 +82,11 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   private val avatarId: String by lazy {
     activity.intent.getStringExtra("avatar_id") ?: "default"
   }
+  /** True if any of the TTS subtitle TextViews are currently visible. */
+  val areSubtitlesShowing: Boolean
+    get() = listOf(educationText, experienceText, hobbiesText)
+      .any { it.visibility == View.VISIBLE }
+
 
   private fun normalizeUrl(raw: String): String {
     val trimmed = raw.trim()
