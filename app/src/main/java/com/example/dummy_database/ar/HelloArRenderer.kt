@@ -99,11 +99,18 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
   // was not changed.  Do this using the timestamp since we can't compare PointCloud objects.
   var lastPointCloudTimestamp: Long = 0
 
-  // Virtual object (human female model)
+  // Virtual object (human model)
   lateinit var virtualObjectMesh: Mesh
   lateinit var virtualObjectShader: Shader
   lateinit var virtualObjectAlbedoTexture: Texture
   lateinit var virtualObjectAlbedoInstantPlacementTexture: Texture
+
+  lateinit var idleMesh: Mesh
+  lateinit var talkingMesh1: Mesh
+  lateinit var talkingMesh2: Mesh
+
+  private var lastTalkingSwitchTime = 0L
+  private var useAltTalkingMesh = false
 
   private val wrappedAnchors = mutableListOf<WrappedAnchor>()
 
@@ -362,13 +369,10 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
             )
 
         // Load custom model
-        virtualObjectMesh =
-             Mesh.createFromAsset(
-                render,
-//                "models/female.obj"
-//               "models/male.obj"
-                "models/${modelName}2.obj"
-            )  // Replace with your model filename
+        idleMesh = Mesh.createFromAsset(render, "models/${modelName}2.obj")
+        talkingMesh1 = Mesh.createFromAsset(render, "models/${modelName}2talk.obj")
+        talkingMesh2 = Mesh.createFromAsset(render, "models/${modelName}2talk2.obj")
+        virtualObjectMesh = idleMesh // default
         Log.d(TAG, "Custom model loaded successfully")
       } catch (e: IOException) {
           Log.e(TAG, "Failed to load custom model", e)
@@ -505,8 +509,6 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
             TrackingStateHelper.getTrackingFailureReasonString(
                 camera
             )
-        session.hasTrackingPlane() && wrappedAnchors.isEmpty() ->
-          activity.getString(R.string.waiting_taps)
         session.hasTrackingPlane() && wrappedAnchors.isNotEmpty() -> null
         else -> activity.getString(R.string.searching_planes)
       }
@@ -561,24 +563,41 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
     // Visualize anchors created by touch.
     render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f)
 
+    val isTalking = activity.view.areSubtitlesShowing
+
+// Update talking animation frame every 400ms if subtitles are showing
+    if (isTalking) {
+      val currentTime = System.currentTimeMillis()
+      if (currentTime - lastTalkingSwitchTime > 400) {
+        useAltTalkingMesh = !useAltTalkingMesh
+        lastTalkingSwitchTime = currentTime
+      }
+    }
+
+    val currentMesh = when {
+      isTalking && useAltTalkingMesh -> talkingMesh1
+      isTalking && !useAltTalkingMesh -> talkingMesh2
+      else -> idleMesh
+    }
+
     val currentTime = System.currentTimeMillis()
     for (wrapped in wrappedAnchors.filter { it.anchor.trackingState == TrackingState.TRACKING }) {
+
       val currentRotation = wrapped.anchor.pose.rotationQuaternion
       val angleDiff = quaternionAngleDifference(wrapped.initialRotationQuaternion, currentRotation)
       val elapsedTime = (currentTime - wrapped.creationTimeMillis) / 1000f
-
       // Log angle every 2 seconds
       if (currentTime - lastAngleOutputTimeMillis >= 2000) {
         lastAngleOutputTimeMillis = currentTime
         Log.d(TAG, "Angle difference: $angleDiff°")
       }
 
-      if (angleDiff > 25f && elapsedTime <= 2f && !wrapped.poseRotationChangedShown) {
-        wrapped.poseRotationChangedShown = true
-        activity.runOnUiThread {
-          Toast.makeText(activity, "Model rotated significantly within 2 seconds", Toast.LENGTH_SHORT).show()
-        }
-      }
+//      if (angleDiff > 25f && elapsedTime <= 2f && !wrapped.poseRotationChangedShown) {
+//        wrapped.poseRotationChangedShown = true
+//        activity.runOnUiThread {
+//          Toast.makeText(activity, "Model rotated significantly within 2 seconds", Toast.LENGTH_SHORT).show()
+//        }
+//      }
 
       wrapped.anchor.pose.toMatrix(modelMatrix, 0)
 
@@ -592,8 +611,9 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
       Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
       virtualObjectShader.setMat4("u_ModelView", modelViewMatrix)
       virtualObjectShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix)
+
       virtualObjectShader.setTexture("u_AlbedoTexture", virtualObjectAlbedoTexture)
-      render.draw(virtualObjectMesh, virtualObjectShader, virtualSceneFramebuffer)
+      render.draw(currentMesh, virtualObjectShader, virtualSceneFramebuffer)
     }
 
     // Compose the virtual scene with the background.

@@ -1,0 +1,24 @@
+# Blender 4.1.1 MTL File: 'None'
+# www.blender.org
+
+newmtl Ch41_body.001
+Ka 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd C:/home/app/mixamo-mini/tmp/skins_387d11ef-5dce-4348-aa47-a56daf2fe9b4.fbm/Ch41_1001_Diffuse.png
+map_Ks C:/home/app/mixamo-mini/tmp/skins_387d11ef-5dce-4348-aa47-a56daf2fe9b4.fbm/Ch41_1001_Specular.png
+map_Ns C:/home/app/mixamo-mini/tmp/skins_387d11ef-5dce-4348-aa47-a56daf2fe9b4.fbm/Ch41_1001_Glossiness.png
+map_Bump -bm 1.000000 C:/home/app/mixamo-mini/tmp/skins_387d11ef-5dce-4348-aa47-a56daf2fe9b4.fbm/Ch41_1001_Normal.png
+
+newmtl Ch41_hair.001
+Ns 200.000000
+Ka 0.500000 0.500000 0.500000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 3
+map_Kd C:/home/app/mixamo-mini/tmp/skins_387d11ef-5dce-4348-aa47-a56daf2fe9b4.fbm/Ch41_1002_Diffuse.png
+map_d C:/home/app/mixamo-mini/tmp/skins_387d11ef-5dce-4348-aa47-a56daf2fe9b4.fbm/Ch41_1002_Diffuse.png
+map_Bump -bm 1.000000 C:/home/app/mixamo-mini/tmp/skins_387d11ef-5dce-4348-aa47-a56daf2fe9b4.fbm/Ch41_1002_Normal.png
