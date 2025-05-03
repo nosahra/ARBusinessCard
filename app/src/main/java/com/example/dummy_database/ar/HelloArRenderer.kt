@@ -114,6 +114,9 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
 
   private val wrappedAnchors = mutableListOf<WrappedAnchor>()
 
+  private var lastTrackedTime: Long = System.currentTimeMillis()
+  private var avatarWasVisible = false
+
   // Environmental HDR
   lateinit var dfgTexture: Texture
   lateinit var cubemapFilter: SpecularCubemapFilter
@@ -619,10 +622,31 @@ class HelloArRenderer( val activity: HelloArActivity, val avatarId: String) :
     // Compose the virtual scene with the background.
     backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR)
 
-    if (!uiShown && wrappedAnchors.any { it.anchor.trackingState == TrackingState.TRACKING }) {
-      uiShown = true
-      activity.runOnUiThread {
-        activity.view.showButtons()
+    val isAvatarTracked = wrappedAnchors.any { it.anchor.trackingState == TrackingState.TRACKING }
+
+    if (isAvatarTracked) {
+      lastTrackedTime = currentTime
+      if (!uiShown) {
+        uiShown = true
+        avatarWasVisible = true
+        activity.runOnUiThread {
+          activity.view.showButtons()
+        }
+      }
+    } else {
+      if (avatarWasVisible && (currentTime - lastTrackedTime) > 4000) {
+        avatarWasVisible = false
+        uiShown = false
+        activity.runOnUiThread {
+          activity.view.stopTTSAndHideAllSubtitles()
+          activity.view.hideButtons()
+        }
+        // Remove avatar anchors
+        for (anchor in imageAnchors.values) {
+          anchor.detach()
+        }
+        imageAnchors.clear()
+        wrappedAnchors.clear()
       }
     }
   }

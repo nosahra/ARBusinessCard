@@ -5,4 +5,5 @@ object AppDestinations {
     const val HOME_ROUTE = "home"
     const val CARDOWNER_ROUTE = "cardholder"
     const val SCANNER_ROUTE = "employer"
+    const val HELP_ROUTE = "help"
 }
