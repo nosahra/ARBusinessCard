@@ -1,20 +1,22 @@
 package com.example.dummy_database.ui.help
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.pager.*
 import com.example.dummy_database.R
+import com.google.accompanist.pager.*
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -31,16 +33,41 @@ fun HelpScreen(onBackClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(8.dp)
     ) {
+        // 🔙 Back icon at top-left
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        color = Color.White,
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_back),
+                    contentDescription = "Back",
+                    tint = Color(0xFF6E4E4E)  // Brown arrow
+                )
+            }
+        }
+
+        // 📌 Title styled like home screen
         Text(
             text = "How to Use",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 16.dp),
-            fontSize = 22.sp
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF5D4037), // Brown
+            modifier = Modifier
+                .padding(top = 7.dp)
+                .align(Alignment.CenterHorizontally)
         )
 
+        // 📷 Slideshow
         HorizontalPager(
             count = imageList.size,
             state = pagerState,
@@ -53,18 +80,16 @@ fun HelpScreen(onBackClick: () -> Unit) {
                 contentDescription = "Help slide ${page + 1}",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f)
+                    .aspectRatio(0.7f)
             )
         }
 
+        // ⚪ Indicator
         HorizontalPagerIndicator(
             pagerState = pagerState,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(16.dp)
         )
-
-        // ✅ Add the Back Button inside the Column
-        Button(onClick = onBackClick) {
-            Text("Back")
-        }
     }
 }
