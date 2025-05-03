@@ -16,8 +16,10 @@ import com.example.dummy_database.ui.navigation.AppDestinations.SCANNER_ROUTE
 import com.example.dummy_database.ui.navigation.AppDestinations.HOME_ROUTE
 import com.example.dummy_database.ui.navigation.AppDestinations.AUTH_ROUTE
 import com.example.dummy_database.ui.cardowner.CardOwnerScreen
+import com.example.dummy_database.ui.help.HelpScreen
 import com.example.dummy_database.ui.scanner.ScannerScreen
 import com.example.dummy_database.ui.home.HomeScreen
+import com.example.dummy_database.ui.navigation.AppDestinations.HELP_ROUTE
 import com.example.dummy_database.ui.network.ConnectivityLayout
 import com.example.dummy_database.ui.theme.Dummy_DatabaseTheme
 
@@ -46,7 +48,8 @@ fun MyApp() {
                     HomeScreen(
                         onCardOwnerScreenClick = { navController.navigate(CARDOWNER_ROUTE) },
                         onScannerScreenClick = { navController.navigate(SCANNER_ROUTE) },
-                        onNeedAuth = { navController.navigate(AUTH_ROUTE) }
+                        onNeedAuth = { navController.navigate(AUTH_ROUTE) },
+                        onHelp = { navController.navigate(HELP_ROUTE) }
                     )
                 }
                 composable(CARDOWNER_ROUTE) {
@@ -72,6 +75,12 @@ fun MyApp() {
                         onBackClick = { navController.navigateUp() }
                     )
                 }
+                composable(HELP_ROUTE) {
+                    HelpScreen(
+                        onBackClick = { navController.navigateUp() }
+                    )
+                }
+
             }
         }
     }

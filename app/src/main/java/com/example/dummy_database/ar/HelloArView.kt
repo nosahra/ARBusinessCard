@@ -82,11 +82,40 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   private val avatarId: String by lazy {
     activity.intent.getStringExtra("avatar_id") ?: "default"
   }
+  private var currentSpeakingSection: String? = null
+
+  fun hideButtons() {
+    linkedInButton.visibility = View.GONE
+    githubButton.visibility = View.GONE
+    emailButton.visibility = View.GONE
+    educationButton.visibility = View.GONE
+    experienceButton.visibility = View.GONE
+    hobbiesButton.visibility = View.GONE
+    stopButton.visibility = View.GONE
+  }
+
   /** True if any of the TTS subtitle TextViews are currently visible. */
   val areSubtitlesShowing: Boolean
     get() = listOf(educationText, experienceText, hobbiesText)
       .any { it.visibility == View.VISIBLE }
 
+  fun stopTTSAndHideAllSubtitles() {
+    com.example.dummy_database.tts.TTSUtil.stop()
+    currentSpeakingSection = null
+    educationText.visibility = View.GONE
+    experienceText.visibility = View.GONE
+    hobbiesText.visibility = View.GONE
+  }
+
+  private fun showAndHideSubtitle(textView: TextView) {
+    activity.runOnUiThread {
+      textView.visibility = View.VISIBLE
+      textView.removeCallbacks(null) // Remove any previously posted hide tasks
+      textView.postDelayed({
+        textView.visibility = View.GONE
+      }, 5000)
+    }
+  }
 
   private fun normalizeUrl(raw: String): String {
     val trimmed = raw.trim()
@@ -189,40 +218,38 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       }
     }
 
-
-
-  val educationButton = root.findViewById<Button>(R.id.education_button)
-  val educationText = root.findViewById<TextView>(R.id.education_text)
-
-  private val stopButton: Button = root.findViewById<Button>(R.id.stop_button).apply {
+  private val stopButton: ImageButton = root.findViewById<ImageButton>(R.id.stop_button).apply {
     visibility = View.GONE
     setOnClickListener {
-      // stop playback *and* hide ourselves
-      com.example.dummy_database.tts.TTSUtil.stop()
+      stopTTSAndHideAllSubtitles()
       visibility = View.GONE
     }
   }
 
+  val educationButton = root.findViewById<Button>(R.id.education_button)
+  val educationText = root.findViewById<TextView>(R.id.education_text)
 
   init {
     educationButton.setOnClickListener {
+      if (currentSpeakingSection == "education") return@setOnClickListener
+
+      stopTTSAndHideAllSubtitles()
+
+      currentSpeakingSection = "education"
       educationText.text = educationTextFetch
-      educationText.visibility = View.VISIBLE
-      educationText.postDelayed({
-        educationText.visibility = View.GONE
-      }, 5000)
-      // Trigger TTS for Education:
+
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
           educationTextFetch,
-          // Use the voice preference fetched from the Intent extra
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
           onStart = {
             stopButton.visibility = View.VISIBLE
+            showAndHideSubtitle(educationText)
           },
           onComplete = {
             stopButton.visibility = View.GONE
+            currentSpeakingSection = null
           }
         )
       }
@@ -234,12 +261,13 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
 
   init {
     experienceButton.setOnClickListener {
+      if (currentSpeakingSection == "experience") return@setOnClickListener
+
+      stopTTSAndHideAllSubtitles()
+
+      currentSpeakingSection = "experience"
       experienceText.text = experienceTextFetch
-      experienceText.visibility = View.VISIBLE
-      experienceText.postDelayed({
-        experienceText.visibility = View.GONE
-      }, 5000)
-      // Trigger TTS for Experience:
+
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
@@ -247,9 +275,11 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
           onStart = {
             stopButton.visibility = View.VISIBLE
+            showAndHideSubtitle(experienceText)
           },
           onComplete = {
             stopButton.visibility = View.GONE
+            currentSpeakingSection = null
           }
         )
       }
@@ -261,13 +291,13 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
 
   init {
     hobbiesButton.setOnClickListener {
+      if (currentSpeakingSection == "hobbies") return@setOnClickListener
+
+      stopTTSAndHideAllSubtitles()
+
+      currentSpeakingSection = "hobbies"
       hobbiesText.text = hobbiesTextFetch
-      hobbiesText.visibility = View.VISIBLE
-      // Hide the text after 3 seconds (3000 milliseconds)
-      hobbiesText.postDelayed({
-        hobbiesText.visibility = View.GONE
-      }, 5000)
-      // Trigger TTS for Hobbies:
+
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
@@ -275,9 +305,11 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
           onStart = {
             stopButton.visibility = View.VISIBLE
+            showAndHideSubtitle(hobbiesText)
           },
           onComplete = {
             stopButton.visibility = View.GONE
+            currentSpeakingSection = null
           }
         )
       }

@@ -182,20 +182,18 @@
       android:textFontWeight="500"
       android:text="Hobbies" />
 
-  <!-- STOP button to cancel any in-flight TTS -->
-  <Button
+  <ImageButton
       android:id="@+id/stop_button"
-      android:layout_width="300dip"
-      android:layout_height="50dip"
+      android:layout_width="50dp"
+      android:layout_height="50dp"
       android:visibility="gone"
-      android:layout_centerHorizontal="true"
-      android:layout_above="@id/education_button"
-      android:layout_marginBottom="10dp"
-      android:background="@drawable/rounded_button"
-      android:textSize="20dp"
-      android:textColor="#6E4E4E"
-      android:textFontWeight="500"
-      android:text="Stop" />
+      android:layout_alignParentStart="true"
+      android:layout_alignParentTop="true"
+      android:layout_margin="25dp"
+      android:background="@android:color/transparent"
+      android:src="@drawable/ic_stop"
+      android:contentDescription="Stop TTS"
+      android:scaleType="centerInside" />
 
 
 
