@@ -266,7 +266,29 @@ fun CardOwnerScreen(
                         modifier = Modifier.padding(top = 16.dp)
                     )
                     Button(
-                        onClick = { /* logic */ },
+                        onClick = {
+                            // clear any prior errors
+                            linkedInError = null
+                            linkedInFetchError = null
+
+                            // validate url
+                            if (linkedInUrl.isBlank()) {
+                                // 1) URL empty → show required‐field error
+                                linkedInFetchError = "Please enter your LinkedIn URL."
+                            }
+                            else if (!isValidHost(linkedInUrl, "linkedin.com")) {
+                                linkedInError = "Must be a valid linkedin.com URL"
+                            }
+                            else {
+                                // 2) pretend‐fetch → fill the dummies
+                                introduction = "Hi, I’m John, a business strategist helping companies scale and thrive. Let’s discuss how I can drive growth for your organization. Let’s connect!"
+                                education     = "I completed my BSc in Business Administration from University of Toronto."
+                                experience    = "I worked as a business strategist for 2 years at IBM."
+                                hobbies       = "I love playing football and learning new things."
+                                // 3) then show the API‐not‐available message
+                                linkedInFetchError = "LinkedIn API isn’t available. Below fields are filled with placeholder data. Please, update the placeholder data as required."
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A4D4D)), // brown
                         modifier = Modifier
                             .fillMaxWidth()
@@ -552,7 +574,7 @@ fun CardOwnerScreen(
                             var linkOk = true
                             if (linkedInUrl.isNotBlank() && !isValidHost(
                                     linkedInUrl,
-                                    "linkedin.com"
+                                    "linkedin.com/in/"
                                 )
                             ) {
                                 linkedInError = "Must be a valid linkedin.com URL"; linkOk =
