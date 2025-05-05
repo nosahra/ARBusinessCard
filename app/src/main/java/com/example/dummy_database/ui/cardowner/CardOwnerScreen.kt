@@ -276,7 +276,7 @@ fun CardOwnerScreen(
                                 // 1) URL empty → show required‐field error
                                 linkedInFetchError = "Please enter your LinkedIn URL."
                             }
-                            else if (!isValidHost(linkedInUrl, "linkedin.com/in/")) {
+                            else if (!isValidHost(linkedInUrl, "linkedin.com")) {
                                 linkedInError = "Must be a valid linkedin.com URL"
                             }
                             else {
@@ -574,7 +574,7 @@ fun CardOwnerScreen(
                             var linkOk = true
                             if (linkedInUrl.isNotBlank() && !isValidHost(
                                     linkedInUrl,
-                                    "linkedin.com/in/"
+                                    "linkedin.com"
                                 )
                             ) {
                                 linkedInError = "Must be a valid linkedin.com URL"; linkOk =
@@ -582,7 +582,7 @@ fun CardOwnerScreen(
                             }
                             if (githubUrl.isNotBlank() && !isValidHost(
                                     githubUrl,
-                                    "github.com/"
+                                    "github.com"
                                 )
                             ) {
                                 githubError = "Must be a valid github.com URL"; linkOk = false
