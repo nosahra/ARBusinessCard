@@ -3,7 +3,10 @@ package com.example.dummy_database.ui.scanner
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.widget.ImageButton
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
+import com.example.dummy_database.R
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
 import com.journeyapps.barcodescanner.CaptureActivity
@@ -43,8 +46,15 @@ class ZxingScannerContract : ActivityResultContract<Unit, String?>() {
     }
 }
 
-/**
- * A no‑frills subclass of the ZXing CaptureActivity
- * that we can force into portrait (or sensor‑portrait) mode.
- */
-class PortraitCaptureActivity: CaptureActivity()
+class PortraitCaptureActivity : CaptureActivity() {
+    override fun setContentView(layoutResID: Int) {
+        super.setContentView(R.layout.custom_capture_layout)
+
+        // Optional: set a click listener for the info button
+        val infoBtn = findViewById<ImageButton>(R.id.info_button)
+        infoBtn.setOnClickListener {
+            Toast.makeText(this, "Scan the QR code shown on a business card to view details in AR.", Toast.LENGTH_LONG).show()
+            // OR navigate to HelpActivity if needed
+        }
+    }
+}

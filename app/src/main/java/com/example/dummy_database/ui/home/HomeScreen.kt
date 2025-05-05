@@ -2,6 +2,7 @@
 package com.example.dummy_database.ui.home
 
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontStyle
+import com.example.dummy_database.R
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -38,37 +40,50 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .background(Color.White)
     ) {
-        // Title section
+        // 🔹 Top-left Help icon button
+        androidx.compose.material3.IconButton(
+            onClick = onHelp,
+            modifier = Modifier.align(Alignment.TopEnd)
+                .padding(20.dp)
+        ) {
+            androidx.compose.material3.Icon(
+                painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_info),
+                contentDescription = "Help",
+                tint = Color(0xFF6E4E4E)
+            )
+        }
+
+        // 🔹 Title
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 48.dp),
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 470.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Know Me Better",
-                fontSize = 32.sp,
+                fontSize = 38.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF6E4E4E),
                 textAlign = TextAlign.Center
             )
             Text(
                 text = "Your Business Card, Reimagined in AR",
-                fontSize = 14.sp,
+                fontSize = 15.5.sp,
                 fontStyle = FontStyle.Italic,
-                color = Color(0xFF9575CD),
+                color = Color(0xFF9B7D7D),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
 
-        // Buttons section
+        // 🔹 Bottom Buttons
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp),
+                .padding(bottom = 50.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -93,7 +108,7 @@ fun HomeScreen(
                 shape = RoundedCornerShape(6.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6D4C41))
             ) {
-                Text("Register/Login", color = Color.White, fontSize = 18.sp)
+                Text("Register/Login", color = Color(0xFFF7D8A5), fontSize = 18.sp)
             }
 
             Text(
@@ -114,21 +129,9 @@ fun HomeScreen(
                     .height(55.dp)
                     .padding(vertical = 4.dp),
                 shape = RoundedCornerShape(6.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF3E5AB))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF7D8A5))
             ) {
                 Text("Scan a QR Code", color = Color(0xFF6E4E4E), fontSize = 18.sp)
-            }
-
-            Button(
-                onClick = onHelp,
-                modifier = Modifier
-                    .width(220.dp)
-                    .height(55.dp)
-                    .padding(top = 16.dp),
-                shape = RoundedCornerShape(6.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB39DDB))
-            ) {
-                Text("Help", color = Color.White, fontSize = 18.sp)
             }
         }
     }

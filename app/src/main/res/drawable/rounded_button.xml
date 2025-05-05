@@ -4,5 +4,5 @@
     <!-- Set your desired background color -->
     <solid android:color="#FFFFFF"/>
     <!-- Define the corner radius -->
-    <corners android:radius="20dp"/>
+    <corners android:radius="10dp"/>
 </shape>

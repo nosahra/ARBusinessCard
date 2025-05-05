@@ -39,6 +39,13 @@ import java.io.OutputStream
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun CardOwnerScreen(
@@ -103,6 +110,41 @@ fun CardOwnerScreen(
         } catch (_: Exception) { false }
     }
 
+    fun generateCardBitmap(
+        context: Context,
+        designResId: Int,
+        uId: String,
+        targetWidth: Int = 800  // or whatever max size fits your screen reasonably
+    ): Bitmap? {
+        // 1. Load full-resolution background
+        val originalBg = BitmapFactory.decodeResource(context.resources, designResId) ?: return null
+
+        // 2. Calculate scaled height
+        val aspectRatio = originalBg.height.toFloat() / originalBg.width
+        val targetHeight = (targetWidth * aspectRatio).toInt()
+
+        // 3. Resize background
+        val bg = Bitmap.createScaledBitmap(originalBg, targetWidth, targetHeight, true)
+
+        // 4. Generate QR code
+        val qr = generateQrCode(uId) ?: return null
+        val qrPx = (bg.width / 4f).toInt()
+        val scaledQr = Bitmap.createScaledBitmap(qr, qrPx, qrPx, true)
+
+        // 5. Compose final bitmap
+        val result = Bitmap.createBitmap(bg.width, bg.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        canvas.drawBitmap(bg, 0f, 0f, paint)
+
+        // 6. Center QR
+        val left = (bg.width - qrPx) / 2f
+        val top = (bg.height - qrPx) / 2f
+        canvas.drawBitmap(scaledQr, left, top, paint)
+
+        return result
+    }
+
     LaunchedEffect(uid) {
         if (uid.isNotEmpty()) {
             try {
@@ -127,234 +169,512 @@ fun CardOwnerScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(Color(0xFFF7D8A5)) // Set the background colour here
     ) {
-        // Dialogs
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("Oops!") },
-                text = { Text(alertMessage) },
-                confirmButton = {
-                    Button(onClick = { showDialog = false }) { Text("OK") }
-                }
-            )
-        }
-        if (showLogoutConfirm) {
-            AlertDialog(
-                onDismissRequest = { showLogoutConfirm = false },
-                title = { Text("Confirm logout") },
-                text = { Text("Have you saved your changes?") },
-                confirmButton = {
-                    Button(onClick = {
-                        auth.signOut()
-                        onBackClick()
-                    }) { Text("Yes, Logout") }
-                },
-                dismissButton = {
-                    Button(onClick = { showLogoutConfirm = false }) { Text("Cancel") }
-                }
-            )
-        }
-        if (showSaveSuccess) {
-            AlertDialog(
-                onDismissRequest = { showSaveSuccess = false },
-                title = { Text("Saved!") },
-                text = { Text("Your changes have been saved.") },
-                confirmButton = {
-                    Button(onClick = { showSaveSuccess = false }) { Text("OK") }
-                }
-            )
-        }
-
-        Text("CardOwner Screen")
-
-        // LinkedIn URL + Fetch
-        OutlinedTextField(
-            value = linkedInUrl,
-            onValueChange = {
-                linkedInUrl = it; linkedInError = null
-            },
-            label = { Text("LinkedIn URL") },
-            isError = linkedInError != null,
-            supportingText = { linkedInError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-            modifier = Modifier.padding(top = 16.dp)
-        )
-        Button(onClick = { /* placeholder */ }, Modifier.padding(top = 8.dp)) { Text("Fetch from LinkedIn") }
-        linkedInFetchError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-
-        // Introduction + other fields
-        OutlinedTextField(
-            value = introduction,
-            onValueChange = { introduction = it; introductionError = null; errorMessage = "" },
-            label = { Text("Introduction") },
-            isError = introductionError != null,
-            supportingText = { introductionError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-            modifier = Modifier.padding(top = 16.dp)
-        )
-        OutlinedTextField(value = education, onValueChange = { education = it }, label = { Text("Education") }, modifier = Modifier.padding(top = 16.dp))
-        OutlinedTextField(value = experience, onValueChange = { experience = it }, label = { Text("Experience") }, modifier = Modifier.padding(top = 16.dp))
-        OutlinedTextField(value = hobbies, onValueChange = { hobbies = it }, label = { Text("Hobbies") }, modifier = Modifier.padding(top = 16.dp))
-        OutlinedTextField(
-            value = githubUrl,
-            onValueChange = { githubUrl = it; githubError = null },
-            label = { Text("GitHub URL") },
-            isError = githubError != null,
-            supportingText = { githubError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-            modifier = Modifier.padding(top = 16.dp)
-        )
-        OutlinedTextField(
-            value = gmail,
-            onValueChange = { gmail = it; emailError = null },
-            label = { Text("Email") },
-            isError = emailError != null,
-            supportingText = { emailError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-            modifier = Modifier.padding(top = 16.dp)
-        )
-
-        // Voice Preference
-        Text("Select Voice Preference:")
-        Row(modifier = Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            avatarVoices.forEach { voice ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
-                    RadioButton(selected = voicePreference == voice, onClick = { voicePreference = voice })
-                    Text(voice)
-                }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Dialogs
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = { Text("Oops!") },
+                    text = { Text(alertMessage) },
+                    confirmButton = {
+                        Button(onClick = { showDialog = false }) { Text("OK") }
+                    }
+                )
             }
-        }
-
-        // Avatar
-        Text("Select Avatar:")
-        Row(modifier = Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            avatarOptions.forEach { avatar ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
-                    RadioButton(selected = selectedAvatar == avatar, onClick = { selectedAvatar = avatar })
-                    Text(avatar)
-                }
+            if (showLogoutConfirm) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutConfirm = false },
+                    title = { Text("Confirm logout") },
+                    text = { Text("Have you saved your changes?") },
+                    confirmButton = {
+                        Button(onClick = {
+                            auth.signOut()
+                            onBackClick()
+                        }) { Text("Yes, Logout") }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showLogoutConfirm = false }) { Text("Cancel") }
+                    }
+                )
             }
-        }
+            if (showSaveSuccess) {
+                AlertDialog(
+                    onDismissRequest = { showSaveSuccess = false },
+                    title = { Text("Saved!") },
+                    text = { Text("Your changes have been saved.") },
+                    confirmButton = {
+                        Button(onClick = { showSaveSuccess = false }) { Text("OK") }
+                    }
+                )
+            }
 
-        // Card Design
-        Text("Select Card Design:")
-        Row(modifier = Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            designOptions.forEach { resId ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp, bottom = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Edit Your Business Card!",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6D4C41)
+                )
+            }
+
+
+            // LinkedIn URL + Fetch
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(end = 12.dp)
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    RadioButton(selected = selectedDesign == resId, onClick = { selectedDesign = resId })
-                    Image(
-                        painter = painterResource(id = resId),
-                        contentDescription = null,
+                    OutlinedTextField(
+                        value = linkedInUrl,
+                        onValueChange = {
+                            linkedInUrl = it
+                            linkedInError = null
+                        },
+                        label = { Text("LinkedIn URL") },
+                        isError = linkedInError != null,
+                        supportingText = {
+                            Column {
+                                Text("Enter your LinkedIn URL, formatted as linkedin.com/in/username")
+                                linkedInError?.let {
+                                    Text(it, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        },
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    Button(
+                        onClick = { /* logic */ },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A4D4D)), // brown
                         modifier = Modifier
-                            .width(100.dp)
-                            .aspectRatio(CARD_RATIO),
-                        contentScale = ContentScale.Fit
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Fetch from LinkedIn", color = Color.White, fontSize = 18.sp)
+                    }
+                    linkedInFetchError?.let {
+                        Text(
+                            it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+            // Introduction + other fields
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    OutlinedTextField(
+                        value = introduction,
+                        onValueChange = {
+                            introduction = it; introductionError = null; errorMessage = ""
+                        },
+                        label = { Text("Introduction") },
+                        isError = introductionError != null,
+                        supportingText = {
+                            Column {
+                                Text(
+                                    "This is the first thing your avatar will say when your card is scanned. Please introduce yourself and write in first person as if speaking about yourself.",
+                                    color = Color(0xFF5D4037)
+                                )
+                                introductionError?.let {
+                                    Text(
+                                        it,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    OutlinedTextField(
+                        value = education,
+                        onValueChange = { education = it },
+                        label = { Text("Education") },
+                        modifier = Modifier.padding(top = 16.dp),
+                        supportingText = {
+                            Column {
+                                Text(
+                                    "Please write in first person as if speaking about yourself.",
+                                    color = Color(0xFF5D4037)
+                                )
+                            }
+                        }
+                    )
+                    OutlinedTextField(
+                        value = experience,
+                        onValueChange = { experience = it },
+                        label = { Text("Experience") },
+                        modifier = Modifier.padding(top = 16.dp),
+                        supportingText = {
+                            Column {
+                                Text(
+                                    "Please write in first person as if speaking about yourself.",
+                                    color = Color(0xFF5D4037)
+                                )
+                            }
+                        }
+                    )
+                    OutlinedTextField(
+                        value = hobbies,
+                        onValueChange = { hobbies = it },
+                        label = { Text("Hobbies") },
+                        modifier = Modifier.padding(top = 16.dp),
+                        supportingText = {
+                            Column {
+                                Text(
+                                    "Please write in first person as if speaking about yourself.",
+                                    color = Color(0xFF5D4037)
+                                )
+                            }
+                        }
+                    )
+                    OutlinedTextField(
+                        value = githubUrl,
+                        onValueChange = {
+                            githubUrl = it
+                            githubError = null
+                        },
+                        label = { Text("GitHub URL") },
+                        isError = githubError != null,
+                        supportingText = {
+                            Column {
+                                Text("Enter your GitHub URL, formatted as github.com/username")
+                                githubError?.let {
+                                    Text(it, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        },
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    OutlinedTextField(
+                        value = gmail,
+                        onValueChange = { gmail = it; emailError = null },
+                        label = { Text("Email") },
+                        isError = emailError != null,
+                        supportingText = {
+                            emailError?.let {
+                                Text(
+                                    it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
+                        modifier = Modifier.padding(top = 16.dp)
                     )
                 }
             }
-        }
 
-        // Save
-        Button(onClick = {
-            introductionError = null; linkedInError = null; githubError = null; emailError = null; errorMessage = ""
-            if (connectivityStatus == ConnectivityStatus.Unavailable) {
-                errorMessage = "Saving failed! Please go online and try again."
-                return@Button
-            }
-            if (introduction.isBlank()) {
-                introductionError = "Please complete your introduction for your AR business card."
-                errorMessage = "Saving failed! Introduction must not be empty."
-                return@Button
-            }
-            if (selectedDesign == null) {
-                alertMessage = "Please select a card design before saving."
-                showDialog = true
-                return@Button
-            }
-            if (selectedAvatar == null) {
-                alertMessage = "Please select an avatar before saving."
-                showDialog = true
-                return@Button
-            }
-            if (voicePreference == null) {
-                alertMessage = "Please select a voice before saving."
-                showDialog = true
-                return@Button
-            }
-            var linkOk = true
-            if (linkedInUrl.isNotBlank() && !isValidHost(linkedInUrl, "linkedin.com")) { linkedInError = "Must be a valid linkedin.com URL"; linkOk = false }
-            if (githubUrl.isNotBlank() && !isValidHost(githubUrl, "github.com")) { githubError = "Must be a valid github.com URL"; linkOk = false }
-            if (gmail.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(gmail).matches()) { emailError = "Must be a valid email address"; linkOk = false }
-            if (!linkOk) {
-                errorMessage = "Saving failed! Please fix the highlighted links."
-                return@Button
-            }
-            val data = mapOf(
-                "linkedInUrl" to linkedInUrl,
-                "introduction" to introduction,
-                "education" to education,
-                "experience" to experience,
-                "hobbies" to hobbies,
-                "githubUrl" to githubUrl,
-                "gmail" to gmail,
-                "voicePreference" to voicePreference,
-                "avatarId" to selectedAvatar,
-                "designOption" to selectedDesign?.toString()
-            )
-            db.collection("cardholders").document(uid).set(data)
-                .addOnSuccessListener {
-                    uId = uid
-                    showSaveSuccess = true
-                    qrVisible = true
+            // Voice Preference
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "Select Voice Preference:",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                        color = Color(0xFF5D4037)
+                    )
+
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        avatarVoices.forEach { voice ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(end = 16.dp)
+                            ) {
+                                RadioButton(
+                                    selected = voicePreference == voice,
+                                    onClick = { voicePreference = voice })
+                                Text(if (voice == "MALE") "Male" else "Female")
+                            }
+                        }
+                    }
+
+                    // Avatar
+                    Text(
+                        "Select Avatar:",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                        color = Color(0xFF5D4037)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        avatarOptions.forEach { avatar ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                RadioButton(
+                                    selected = selectedAvatar == avatar,
+                                    onClick = { selectedAvatar = avatar }
+                                )
+                                Image(
+                                    painter = painterResource(
+                                        id = if (avatar == "avatar_man") R.drawable.male_image else R.drawable.female_image
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .aspectRatio(1f) // Force square
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
+                    }
                 }
-                .addOnFailureListener { e ->
-                    errorMessage = if (e is com.google.firebase.FirebaseNetworkException)
-                        "Saving failed! Please go online and try again."
-                    else
-                        "Saving failed: ${e.localizedMessage ?: "Unknown error"}"
+            }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Card Design
+                    Text(
+                        "Select Card Design:",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                        color = Color(0xFF5D4037)
+                    )
+
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        designOptions.forEach { resId ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(end = 12.dp)
+                            ) {
+                                RadioButton(
+                                    selected = selectedDesign == resId,
+                                    onClick = { selectedDesign = resId })
+                                Image(
+                                    painter = painterResource(id = resId),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(85.dp)
+                                        .aspectRatio(CARD_RATIO),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
+                    }
+
+                    // Save
+                    Button(
+                        onClick = {
+                            introductionError = null; linkedInError = null; githubError =
+                            null; emailError = null; errorMessage = ""
+                            if (connectivityStatus == ConnectivityStatus.Unavailable) {
+                                errorMessage = "Saving failed! Please go online and try again."
+                                return@Button
+                            }
+                            if (introduction.isBlank()) {
+                                introductionError =
+                                    "Please complete your introduction for your AR business card."
+                                errorMessage = "Saving failed! Introduction must not be empty."
+                                return@Button
+                            }
+                            if (selectedDesign == null) {
+                                alertMessage = "Please select a card design before saving."
+                                showDialog = true
+                                return@Button
+                            }
+                            if (selectedAvatar == null) {
+                                alertMessage = "Please select an avatar before saving."
+                                showDialog = true
+                                return@Button
+                            }
+                            if (voicePreference == null) {
+                                alertMessage = "Please select a voice before saving."
+                                showDialog = true
+                                return@Button
+                            }
+                            var linkOk = true
+                            if (linkedInUrl.isNotBlank() && !isValidHost(
+                                    linkedInUrl,
+                                    "linkedin.com"
+                                )
+                            ) {
+                                linkedInError = "Must be a valid linkedin.com URL"; linkOk =
+                                    false
+                            }
+                            if (githubUrl.isNotBlank() && !isValidHost(
+                                    githubUrl,
+                                    "github.com"
+                                )
+                            ) {
+                                githubError = "Must be a valid github.com URL"; linkOk = false
+                            }
+                            if (gmail.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(
+                                    gmail
+                                )
+                                    .matches()
+                            ) {
+                                emailError = "Must be a valid email address"; linkOk = false
+                            }
+                            if (!linkOk) {
+                                errorMessage =
+                                    "Saving failed! Please fix the highlighted links."
+                                return@Button
+                            }
+                            val data = mapOf(
+                                "linkedInUrl" to linkedInUrl,
+                                "introduction" to introduction,
+                                "education" to education,
+                                "experience" to experience,
+                                "hobbies" to hobbies,
+                                "githubUrl" to githubUrl,
+                                "gmail" to gmail,
+                                "voicePreference" to voicePreference,
+                                "avatarId" to selectedAvatar,
+                                "designOption" to selectedDesign?.toString()
+                            )
+                            db.collection("cardholders").document(uid).set(data)
+                                .addOnSuccessListener {
+                                    uId = uid
+                                    showSaveSuccess = true
+                                    qrVisible = true
+                                }
+                                .addOnFailureListener { e ->
+                                    errorMessage =
+                                        if (e is com.google.firebase.FirebaseNetworkException)
+                                            "Saving failed! Please go online and try again."
+                                        else
+                                            "Saving failed: ${e.localizedMessage ?: "Unknown error"}"
+                                }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A4D4D)), // brown
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Save Account Details", color = Color.White, fontSize = 18.sp)
+                    }
+
+                    if (errorMessage.isNotEmpty()) {
+                        Text(
+                            errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    // Display designed card with QR
+                    if (qrVisible && uId.isNotEmpty() && selectedDesign != null) {
+                        // 2) Remember the generated bitmap, using context, uId & design as keys
+                        val cardBitmap: Bitmap? = remember(context, uId, selectedDesign) {
+                            generateCardBitmap(context, selectedDesign!!, uId, targetWidth = 800)
+                        }
+
+                        // 3) Display it
+                        cardBitmap?.let { bmp ->
+                            Image(
+                                bitmap = bmp.asImageBitmap(),
+                                contentDescription = "Generated Business Card",
+                                modifier = Modifier
+                                    .width(250.dp) // Match your design option width
+                                    .aspectRatio(bmp.width / bmp.height.toFloat()),
+                                contentScale = ContentScale.Fit
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    saveImageToGallery(
+                                        context,
+                                        bmp,
+                                        "My_Business_Card"
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(
+                                        0xFF7A4D4D
+                                    )
+                                )
+                            ) {
+                                Text("Download Business Card", fontSize = 18.sp)
+                            }
+                        } ?: Text("Failed to generate card preview")
+                    }
                 }
-        }, modifier = Modifier.padding(top = 16.dp)) {
-            Text("Save")
-        }
-
-        if (errorMessage.isNotEmpty()) {
-            Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
-
-        // Display designed card with QR
-        if (qrVisible && uId.isNotEmpty() && selectedDesign != null) {
-            // 2) Remember the generated bitmap, using context, uId & design as keys
-            val cardBitmap: Bitmap? = remember(context, uId, selectedDesign) {
-                generateCardBitmap(context, selectedDesign!!, uId)
             }
 
-            // 3) Display it
-            cardBitmap?.let { bmp ->
-                Image(
-                    bitmap = bmp.asImageBitmap(),
-                    contentDescription = "Generated Business Card",
+            // Logout
+            if (auth.currentUser != null) {
+                Button(
+                    onClick = { showLogoutConfirm = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A4D4D)), // brown
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(bmp.width / bmp.height.toFloat()),
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(Modifier.height(8.dp))
-                Button(onClick = { saveImageToGallery(context, bmp, "My_Business_Card") }) {
-                    Text("Download Business Card")
+                        .padding(top = 8.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Logout", fontSize = 18.sp)
                 }
-            } ?: Text("Failed to generate card preview")
-        }
-
-        // Logout
-        if (auth.currentUser != null) {
-            Button(onClick = { showLogoutConfirm = true }, modifier = Modifier.padding(top = 16.dp)) {
-                Text("Logout")
             }
         }
     }

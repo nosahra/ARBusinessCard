@@ -70,7 +70,7 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF7D8A5)), // Light yellow
+            .background(Color.White),
         contentAlignment = Alignment.Center
     ){
         Column(
@@ -114,10 +114,7 @@ fun AuthScreen(
                     .padding(top = 8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent
+                    unfocusedContainerColor = Color.White
                 ),
                 shape = RoundedCornerShape(8.dp)
             )
@@ -143,10 +140,7 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent
+                    unfocusedContainerColor = Color.White
                 ),
                 shape = RoundedCornerShape(8.dp),
                 isError = passwordError != null
@@ -176,10 +170,7 @@ fun AuthScreen(
                         .padding(top = 8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
-                        errorBorderColor = Color.Transparent
+                        unfocusedContainerColor = Color.White
                     ),
                     shape = RoundedCornerShape(8.dp),
                     isError = confirmPasswordError != null
@@ -300,11 +291,18 @@ fun AuthScreen(
                             }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A4D4D)), // brown
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                shape = RoundedCornerShape(8.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6D4C41)), // brown
+
+                modifier = Modifier
+                    .width(if (isLoginMode) 110.dp else 150.dp)
+                    .height(50.dp)
+                    .padding(top = 8.dp),
+                        shape = RoundedCornerShape(8.dp)
             ) {
-                Text(text = if (isLoginMode) "Login" else "Register", color = Color.White)
+                Text(text = if (isLoginMode) "Login" else "Register",
+                    color = Color(0xFFF7D8A5),
+                    fontSize = 18.sp
+                )
             }
 
             Spacer(Modifier.height(8.dp))
@@ -320,11 +318,11 @@ fun AuthScreen(
             // Button to toggle mode
             Button(
                 onClick = { isLoginMode = !isLoginMode },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB28DDE)), // purple
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF7D8A5)), // purple
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(text = if (isLoginMode) "Register" else "Login", color = Color.White)
+                Text(text = if (isLoginMode) "Register" else "Login", color = Color(0xFF9B7D7D), fontSize = 18.sp)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -332,10 +330,10 @@ fun AuthScreen(
             Button(
                 onClick = onBackClick,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B7D7D)), // light brown
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(50.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Return Home", color = Color.White)
+                Text("Return Home", color = Color(0xFFF7D8A5), fontSize = 18.sp)
             }
         }
     }

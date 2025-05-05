@@ -1,12 +1,22 @@
 // MainActivity.kt
 package com.example.dummy_database
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -34,56 +44,79 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val isFirstTime = remember { mutableStateOf<Boolean?>(null) }
 
-    Surface(color = MaterialTheme.colorScheme.background) {
-        ConnectivityLayout {
-            NavHost(
-                navController = navController,
-                startDestination = HOME_ROUTE
-            ) {
-                composable(HOME_ROUTE) {
-                    HomeScreen(
-                        onCardOwnerScreenClick = { navController.navigate(CARDOWNER_ROUTE) },
-                        onScannerScreenClick = { navController.navigate(SCANNER_ROUTE) },
-                        onNeedAuth = { navController.navigate(AUTH_ROUTE) },
-                        onHelp = { navController.navigate(HELP_ROUTE) }
-                    )
-                }
-                composable(CARDOWNER_ROUTE) {
-                    CardOwnerScreen(
-                        onBackClick = { navController.navigateUp() }
-                    )
-                }
-                composable(SCANNER_ROUTE) {
-                    ScannerScreen(
-                        onBackClick = { navController.navigateUp() }
-                    )
-                }
+    // Check SharedPreferences once
+    LaunchedEffect(Unit) {
+        val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val hasSeenHelp = prefs.getBoolean("hasSeenHelp", false)
 
-                composable(AUTH_ROUTE) {
-                    AuthScreen(
-                        onAuthSuccess = {
-                            // Once the user logs in, go back to Home
-                            navController.navigate(CARDOWNER_ROUTE) {
-                                // remove Auth screen from back stack
-                                popUpTo(AUTH_ROUTE) { inclusive = true }
+        if (!hasSeenHelp) {
+            prefs.edit().putBoolean("hasSeenHelp", true).apply()
+            isFirstTime.value = true
+        } else {
+            isFirstTime.value = false
+        }
+    }
+
+    if (isFirstTime.value == null) {
+        // Show loading while determining destination
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        val startDest = if (isFirstTime.value == true) HELP_ROUTE else HOME_ROUTE
+
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ConnectivityLayout {
+                NavHost(
+                    navController = navController,
+                    startDestination = startDest
+                ) {
+                    composable(HOME_ROUTE) {
+                        HomeScreen(
+                            onCardOwnerScreenClick = { navController.navigate(CARDOWNER_ROUTE) },
+                            onScannerScreenClick = { navController.navigate(SCANNER_ROUTE) },
+                            onNeedAuth = { navController.navigate(AUTH_ROUTE) },
+                            onHelp = { navController.navigate(HELP_ROUTE) }
+                        )
+                    }
+                    composable(CARDOWNER_ROUTE) {
+                        CardOwnerScreen(onBackClick = { navController.navigateUp() })
+                    }
+                    composable(SCANNER_ROUTE) {
+                        ScannerScreen(onBackClick = { navController.navigateUp() })
+                    }
+                    composable(AUTH_ROUTE) {
+                        AuthScreen(
+                            onAuthSuccess = {
+                                navController.navigate(CARDOWNER_ROUTE) {
+                                    popUpTo(AUTH_ROUTE) { inclusive = true }
+                                }
+                            },
+                            onBackClick = { navController.navigateUp() }
+                        )
+                    }
+                    composable(HELP_ROUTE) {
+                        HelpScreen(
+                            onNavigateHome = {
+                                navController.navigate(HOME_ROUTE) {
+                                    popUpTo(0) { inclusive = true } // Clear backstack
+                                }
                             }
-                        },
-                        onBackClick = { navController.navigateUp() }
-                    )
-                }
-                composable(HELP_ROUTE) {
-                    HelpScreen(
-                        onBackClick = { navController.navigateUp() }
-                    )
-                }
+                        )
+                    }
 
+                }
             }
         }
     }
 }
+
 
 

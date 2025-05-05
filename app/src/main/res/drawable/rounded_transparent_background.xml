@@ -4,7 +4,7 @@
   <!-- White color with 80% opacity (CC) -->
   <solid android:color="#CCFFFFFF" />
   <!-- Rounded corners -->
-  <corners android:radius="12dp" />
+  <corners android:radius="10dp" />
   <!-- Optional padding inside the shape -->
   <padding
       android:left="8dp"

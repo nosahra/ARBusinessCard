@@ -20,7 +20,7 @@ import com.google.accompanist.pager.*
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HelpScreen(onBackClick: () -> Unit) {
+fun HelpScreen(onNavigateHome: () -> Unit) {
     val imageList = listOf(
         R.drawable.help_slide_ex,
         R.drawable.help_slide_ex,
@@ -32,31 +32,30 @@ fun HelpScreen(onBackClick: () -> Unit) {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
+            .background(Color.White)
+            .padding(20.dp)
     ) {
-        // 🔙 Back icon at top-left
+
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
-                onClick = onBackClick,
+                onClick = onNavigateHome,
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(45.dp)
                     .background(
                         color = Color.White,
                         shape = CircleShape
                     )
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_back),
+                    painter = painterResource(id = R.drawable.ic_x),
                     contentDescription = "Back",
                     tint = Color(0xFF6E4E4E)  // Brown arrow
                 )
             }
         }
 
-        // 📌 Title styled like home screen
         Text(
             text = "How to Use",
             fontSize = 28.sp,
@@ -67,7 +66,6 @@ fun HelpScreen(onBackClick: () -> Unit) {
                 .align(Alignment.CenterHorizontally)
         )
 
-        // 📷 Slideshow
         HorizontalPager(
             count = imageList.size,
             state = pagerState,
@@ -84,7 +82,6 @@ fun HelpScreen(onBackClick: () -> Unit) {
             )
         }
 
-        // ⚪ Indicator
         HorizontalPagerIndicator(
             pagerState = pagerState,
             modifier = Modifier

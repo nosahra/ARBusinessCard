@@ -88,6 +88,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     linkedInButton.visibility = View.GONE
     githubButton.visibility = View.GONE
     emailButton.visibility = View.GONE
+    introButton.visibility = View.GONE
     educationButton.visibility = View.GONE
     experienceButton.visibility = View.GONE
     hobbiesButton.visibility = View.GONE
@@ -213,8 +214,15 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val emailButton =
     root.findViewById<ImageButton>(R.id.email_button).apply {
       setOnClickListener {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("mailto:$emailAddress"))
-        activity.startActivity(intent)
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+          data = Uri.parse("mailto:$emailAddress")
+        }
+        try {
+          activity.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+          Toast.makeText(activity, "No email app found.", Toast.LENGTH_LONG).show()
+        }
+
       }
     }
 
@@ -225,6 +233,37 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       visibility = View.GONE
     }
   }
+
+  val introButton = root.findViewById<Button>(R.id.intro_button)
+  val introText = root.findViewById<TextView>(R.id.intro_text)
+
+  init {
+    introButton.setOnClickListener {
+      if (currentSpeakingSection == "intro") return@setOnClickListener
+
+      stopTTSAndHideAllSubtitles()
+
+      currentSpeakingSection = "intro"
+      introText.text = introductionText
+
+      activity.lifecycleScope.launch(Dispatchers.IO) {
+        com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
+          activity,
+          introductionText,
+          activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
+          onStart = {
+            stopButton.visibility = View.VISIBLE
+            showAndHideSubtitle(introText)
+          },
+          onComplete = {
+            stopButton.visibility = View.GONE
+            currentSpeakingSection = null
+          }
+        )
+      }
+    }
+  }
+
 
   val educationButton = root.findViewById<Button>(R.id.education_button)
   val educationText = root.findViewById<TextView>(R.id.education_text)
@@ -320,6 +359,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     linkedInButton.visibility = View.VISIBLE
     githubButton.visibility = View.VISIBLE
     emailButton.visibility = View.VISIBLE
+    introButton.visibility = View.VISIBLE
     educationButton.visibility = View.VISIBLE
     experienceButton.visibility = View.VISIBLE
     hobbiesButton.visibility = View.VISIBLE
