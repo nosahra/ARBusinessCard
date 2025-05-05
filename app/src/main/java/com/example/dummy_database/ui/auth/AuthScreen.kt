@@ -1,11 +1,21 @@
 package com.example.dummy_database.ui.auth
 
+/**
+ * Defines the Authentication screen UI and logic for user login and registration
+ * using Firebase Authentication with email and password. Includes input validation,
+ * email verification, error display and network connectivity checks.
+ *
+ * Responsibilities
+ * Newton: Structure of this page, all core logics and flows
+ * Sahra: Improved UI
+ */
+
+
 import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
@@ -33,7 +43,6 @@ import androidx.compose.ui.unit.sp
 import com.example.dummy_database.ui.network.ConnectivityStatus
 import com.example.dummy_database.ui.network.rememberConnectivityState
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
 
 
 @Composable
@@ -41,32 +50,34 @@ fun AuthScreen(
     onAuthSuccess: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    // states for email & password
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoginMode by remember { mutableStateOf(true) }  // Toggle between login/register
 
-    val auth = FirebaseAuth.getInstance()
-    val context = LocalContext.current
+    var isLoginMode by remember { mutableStateOf(true) }  // Toggle between login/register modes
+    val auth = FirebaseAuth.getInstance()       // firebase auth instance
+    val context = LocalContext.current  //android context for showing toasts
 
-    // now yields ConnectivityStatus.Available or .Unavailable
+    // Observes network connectivity status
     val connectivityStatus = rememberConnectivityState()
 
     // error states
     var passwordError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var generalError by remember { mutableStateOf<String?>(null) }
-
-    var confirmPassword by remember { mutableStateOf("") }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
+    // only used in register mode for inline validation
+    var confirmPassword by remember { mutableStateOf("") }
 
+    // function for password validation
     fun isPasswordStrong(pw: String): Boolean {
         // at least 6 chars, at least one uppercase, at least one digit
         val regex = Regex("^(?=.*[A-Z])(?=.*\\d).{6,}\$")
         return regex.matches(pw)
     }
 
-
+    // container for the whole screen
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -79,7 +90,7 @@ fun AuthScreen(
                 .width(IntrinsicSize.Min),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // TITLE
+            // TITLE(changes based on mode)
             Text(
                 text = if (isLoginMode) "Login" else "Register",
                 fontSize = 28.sp,
@@ -87,7 +98,7 @@ fun AuthScreen(
                 color = Color(0xFF7A4D4D) // Brown
             )
 
-            // General error (network failure, permission denied, etc)
+            // displays general error (connectivity, auth failure etc)
             generalError?.let { err ->
                 Text(
                     text = err,
@@ -118,6 +129,7 @@ fun AuthScreen(
                 ),
                 shape = RoundedCornerShape(8.dp)
             )
+            // displays inline email format error
             emailError?.let { err ->
                 Text(
                     text = err,
@@ -145,6 +157,7 @@ fun AuthScreen(
                 shape = RoundedCornerShape(8.dp),
                 isError = passwordError != null
             )
+            // displays inline password error
             passwordError?.let { err ->
                 Text(
                     text = err,
@@ -156,7 +169,7 @@ fun AuthScreen(
                 )
             }
 
-            // only show Confirm Password in Register mode
+            // Confirm Password field only in Register mode
             if (!isLoginMode) {
                 OutlinedTextField(
                     value = confirmPassword,
@@ -189,6 +202,7 @@ fun AuthScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // Submit button: either login or register
             Button(
                 onClick = {
 
@@ -197,6 +211,7 @@ fun AuthScreen(
                     passwordError = null
                     generalError = null
 
+                    //check connectivity
                     if (connectivityStatus == ConnectivityStatus.Unavailable) {
                         generalError = "No network - please go online and try again."
                     }
@@ -219,6 +234,7 @@ fun AuthScreen(
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     val user = auth.currentUser
+                                    // checks if email is verified
                                     if (user != null && user.isEmailVerified) {
                                         Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
                                         onAuthSuccess()
@@ -231,6 +247,7 @@ fun AuthScreen(
                                         auth.signOut()
                                     }
                                 } else {
+                                        // login error handling
                                         val exception = task.exception
                                         generalError = when (exception) {
                                             is com.google.firebase.FirebaseNetworkException ->
@@ -245,13 +262,13 @@ fun AuthScreen(
 
                         // --- REGISTER FLOW ---
 
-                        // Enforce strong password only on register
+                        // check password strength (only on register)
                         if (!isPasswordStrong(password)) {
                             passwordError = "Password must have at least 6 chars, an uppercase letter & a digit"
                             return@Button
                         }
 
-                        // Confirm password
+                        // Confirm passwords match
                         if (password != confirmPassword) {
                             confirmPasswordError = "Passwords do not match"
                             return@Button
@@ -261,6 +278,7 @@ fun AuthScreen(
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     val user = auth.currentUser
+                                    // sends verification email
                                     user?.sendEmailVerification()
                                         ?.addOnCompleteListener { verifyTask ->
                                             if (verifyTask.isSuccessful) {
@@ -269,9 +287,10 @@ fun AuthScreen(
                                                     "Verification email sent to ${user.email}. Please check your inbox.",
                                                     Toast.LENGTH_LONG
                                                 ).show()
-                                                // switch to login so they can sign in once they've verified:
+                                                // switch to login mode, to sign in once they've verified:
                                                 isLoginMode = true
                                             } else {
+                                                // registration error handling
                                                 Toast.makeText(
                                                     context,
                                                     "Failed to send verification email: ${verifyTask.exception?.message}",
@@ -307,6 +326,7 @@ fun AuthScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // switch prompt text based on mode
             Text(
                 text = if (isLoginMode) "New User?" else "Already have an account?",
                 fontStyle = FontStyle.Italic,
@@ -327,6 +347,7 @@ fun AuthScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // Return to home button
             Button(
                 onClick = onBackClick,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B7D7D)), // light brown

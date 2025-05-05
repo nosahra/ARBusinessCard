@@ -1,5 +1,13 @@
 package com.example.dummy_database.ui.scanner
 
+/**
+ * Provides components for integrating the ZXing barcode scanner into the application
+ * using the modern Activity Result API and a custom capture activity for specific
+ * layout or orientation requirements.
+ *
+ */
+
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -15,46 +23,50 @@ import com.journeyapps.barcodescanner.CaptureActivity
 
 /**
  * A custom ActivityResultContract to launch the ZXing scanner.
+ * Encapsulates creating the scan Intent and parsing its result, returning
+ * the scanned contents (or null if canceled/failed).
  */
 class ZxingScannerContract : ActivityResultContract<Unit, String?>() {
 
-    // 1) Use the exact signature: createIntent(context: Context, input: Unit)
+    // builds the intent to launch the scanner
     override fun createIntent(context: Context, input: Unit): Intent {
-        // 2) Cast context to Activity. If context is not an activity,
-        //    throw an error or handle gracefully.
+        // ensures context is an Activity
         val activity = context as? Activity
             ?: throw IllegalStateException("Context must be an Activity")
 
-        // 3) Use IntentIntegrator with the actual Activity
+        // Initialize ZXing IntentIntegrator with custom PortraitCaptureActivity
         val integrator = IntentIntegrator(activity)
         integrator.setCaptureActivity(PortraitCaptureActivity::class.java)
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
-        integrator.setPrompt("Scan a QR code")
-        integrator.setCameraId(0) // Use a specific camera if needed
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)   //only qr code
+        integrator.setPrompt("Scan a QR code")      //prompt text shown at top
+        integrator.setCameraId(0)               // Uses default(rear) camera
         integrator.setBeepEnabled(false)
         integrator.setOrientationLocked(false)
-        // ... any other settings you want
 
-        // Create the Intent to launch the scanning Activity
+        // return the Intent that will start the scanning Activity
         return integrator.createScanIntent()
     }
 
+    // parse the result from the scanning Activity
     override fun parseResult(resultCode: Int, intent: Intent?): String? {
         if (resultCode != Activity.RESULT_OK) return null
         val result: IntentResult? = IntentIntegrator.parseActivityResult(resultCode, intent)
-        return result?.contents // The scanned text (doc ID), or null if canceled
+        return result?.contents     // returns the scanned text (doc ID), or null if canceled
     }
 }
 
+/**
+ * Custom CaptureActivity subclass to use a tailored layout for scanning.
+ * (with info button)
+ */
 class PortraitCaptureActivity : CaptureActivity() {
     override fun setContentView(layoutResID: Int) {
         super.setContentView(R.layout.custom_capture_layout)
 
-        // Optional: set a click listener for the info button
+        // Set up the info button
         val infoBtn = findViewById<ImageButton>(R.id.info_button)
         infoBtn.setOnClickListener {
             Toast.makeText(this, "Scan the QR code shown on a business card to view details in AR.", Toast.LENGTH_LONG).show()
-            // OR navigate to HelpActivity if needed
         }
     }
 }

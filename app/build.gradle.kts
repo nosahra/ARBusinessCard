@@ -75,18 +75,10 @@ dependencies {
 
     // The BOM (Bill of Materials) aligns all Firebase library versions automatically
     implementation(platform(libs.firebase.bom))
-    // Firestore
-    // implementation(libs.firebase.firestore)
-    // (Optional) Firebase Auth if you plan to do sign in
-    // implementation("com.google.firebase:firebase-auth")
-    // (Optional) If you use Realtime Database
-    // implementation(libs.firebase.database.ktx)
-    // Import the BoM for the Firebase platform
 
     // Declare the dependencies for Firebase products
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-
     implementation(libs.kotlinx.coroutines.play.services)
 
 
@@ -97,11 +89,7 @@ dependencies {
 
     implementation(libs.zxing.core)     //generate qr code
 
-    implementation(libs.zxing.android.embedded) {
-        // If you only want Barcode scanning and not the full capture activity UI:
-        // exclude group: "com.google.zxing"
-        // exclude module: "core"
-    }
+    implementation(libs.zxing.android.embedded) //scan qr code
 
 // ARCore (Google Play Services for AR)
     implementation("com.google.ar:core:1.47.0")
@@ -109,10 +97,10 @@ dependencies {
 // AppCompat library (needed for Theme.AppCompat, etc.)
     implementation("androidx.appcompat:appcompat:1.1.0")
 
-// Lifecycle library that might be used by AR helpers
+// Lifecycle library (for Activity, Fragment, ViewModel, etc.) AR helpers
     implementation("androidx.lifecycle:lifecycle-common-java8:2.2.0")
 
-// Material components (if your AR code references any Material widgets)
+// Material components
     implementation("com.google.android.material:material:1.1.0")
 
     implementation("de.javagl:obj:0.4.0")

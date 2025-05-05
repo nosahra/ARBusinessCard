@@ -1,5 +1,16 @@
 package com.example.dummy_database.ui.scanner
 
+/**
+ * Defines the Scanner screen UI and logic.
+ * This screen is responsible for launching the QR code scanner,
+ * handling the scan result (a user ID), fetching corresponding data
+ * from Firestore and launching the Augmented Reality (AR) experience
+ * with the retrieved business card data. It also includes basic
+ * network connectivity handling.
+ *
+ * Responsibilities: Newton
+ */
+
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
@@ -16,7 +27,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
-
 import androidx.compose.runtime.*
 import com.example.dummy_database.ar.HelloArActivity
 import com.example.dummy_database.ui.network.ConnectivityStatus
@@ -26,16 +36,18 @@ import com.google.firebase.ktx.Firebase
 
 
 
+
 @Composable
 fun ScannerScreen(
     onBackClick: () -> Unit
 ) {
+    // Obtains Android context for launching activities
     val context = LocalContext.current
 
-    // We'll store the scannedUid after scanning
+    // state to hold the scanned user ID
     var scannedUid by remember { mutableStateOf<String?>(null) }
 
-    // We'll also store the fetched data
+    // states to hold each field fetched from Firestore
     var introduction by remember { mutableStateOf("") }
     var education by remember { mutableStateOf("") }
     var experience by remember { mutableStateOf("") }
@@ -47,25 +59,25 @@ fun ScannerScreen(
     var avatarId by remember { mutableStateOf("") }
 
 
-    // Firestore reference
+    // Firestore instance for retrieving data
     val db = Firebase.firestore
 
-    // The launcher that starts the ZXing scanner
+    // launcher that uses custom ZXing contract to scan QR codes
     val scannerLauncher = rememberLauncherForActivityResult(
         contract = ZxingScannerContract(),
         onResult = { result: String? ->
             if (result != null) {
-                scannedUid = result
+                scannedUid = result //save the scanned user ID for debugging
                 Log.d("ScannerScreen", "Scanned doc ID: $result")
 
-                // 1) Fetch from Firestore
+                // Fetches the document with scanned ID from Firestore
                 db.collection("cardholders")
                     .document(result)
                     .get()
                     .addOnSuccessListener { document ->
                         if (document != null && document.exists()) {
 
-                            // We parse each field. Adjust to match your schema
+                            //parse each field
                             introduction = document.getString("introduction") ?: ""
                             education = document.getString("education") ?: ""
                             experience = document.getString("experience") ?: ""
@@ -76,7 +88,7 @@ fun ScannerScreen(
                             voicePreference = document.getString("voicePreference") ?: ""
                             avatarId = document.getString("avatarId") ?: ""
 
-                            // Launch the AR activity directly.
+                            // prepare intent to launch AR experience
                             val intent = Intent(context, HelloArActivity::class.java).apply {
                                 putExtra("education", education)
                                 putExtra("experience", experience)
@@ -89,10 +101,9 @@ fun ScannerScreen(
                                 putExtra("avatarId", avatarId)
 
                             }
-                            // Optionally, pass extras if needed:
-                            // intent.putExtra("avatar_id", "default")
+                            // start AR activity
                             context.startActivity(intent)
-                            // Navigate back to the Home screen
+                            // Navigate back to Home screen
                             onBackClick()
                         } else {
                             Log.w("ScannerScreen", "No such document or doc doesn't exist")
@@ -108,16 +119,18 @@ fun ScannerScreen(
     )
 
 
-    // now yields ConnectivityStatus.Available or .Unavailable
+    // observes ConnectivityStatus.Available/Unavailable
     val connectivityStatus = rememberConnectivityState()
 
-    // only fire the camera‐launch effect when we go from Unavailable → Available
+    // Unavailable → Available => launch scanner
     LaunchedEffect(connectivityStatus) {
         if (connectivityStatus == ConnectivityStatus.Available) {
             scannerLauncher.launch(Unit)
         }
     }
 
+    // UI: simple column showing retry button when offline
+    // or a loading text when auto-launching camera
     Column(
         modifier = Modifier
             .fillMaxSize()
