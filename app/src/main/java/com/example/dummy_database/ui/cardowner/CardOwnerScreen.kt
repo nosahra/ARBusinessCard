@@ -1,5 +1,20 @@
 package com.example.dummy_database.ui.cardowner
 
+/**
+ * Defines the Card Owner screen UI and logic where authenticated users can
+ * manage their AR business card details. Allows editing personal information,
+ * selecting avatar, voice, and card design. Fetches existing data from
+ * and saves updated data to Firebase Firestore. Generates and displays a QR code
+ * based on the user's ID and provides functionality to download the generated card image.
+ * Also handles basic input validation.
+ *
+ * Responsibilities:
+ * Newton: Structure of the Cardowner Screen, saving and loading data from Firestore,
+ * error handling for input validation, linkedin dummy data fetching,
+ * QR code generation and image download
+ * Sahra: Improved UI,  card design and preview options
+ */
+
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -51,12 +66,14 @@ import androidx.compose.ui.unit.sp
 fun CardOwnerScreen(
     onBackClick: () -> Unit
 ) {
+    // // Firestore and Auth instances for data persistence and user identity
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
+    // checks internet connection
     val connectivityStatus = rememberConnectivityState()
-    val context = LocalContext.current
+    val context = LocalContext.current      // andr. context for toasts
 
-    // form fields
+    // form state variables
     var linkedInUrl by remember { mutableStateOf("") }
     var introduction by remember { mutableStateOf("") }
     var education by remember { mutableStateOf("") }
@@ -65,7 +82,7 @@ fun CardOwnerScreen(
     var githubUrl by remember { mutableStateOf("") }
     var gmail by remember { mutableStateOf("") }
 
-    // errors
+    // validation error state variables
     var linkedInError by remember { mutableStateOf<String?>(null) }
     var linkedInFetchError by remember { mutableStateOf<String?>(null) }
     var githubError by remember { mutableStateOf<String?>(null) }
@@ -73,13 +90,13 @@ fun CardOwnerScreen(
     var introductionError by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf("") }
 
-    // avatar & voice
+    // avatar & voice selection state variables
     var selectedAvatar by remember { mutableStateOf<String?>(null) }
     val avatarOptions = listOf("avatar_man", "avatar_woman")
     var voicePreference by remember { mutableStateOf<String?>(null) }
     val avatarVoices = listOf("MALE", "FEMALE")
 
-    // card design
+    // card design options and aspect ratio constant
     var selectedDesign by remember { mutableStateOf<Int?>(null) }
     val designOptions = listOf(
         R.drawable.card_option1,
@@ -88,20 +105,24 @@ fun CardOwnerScreen(
     )
     val CARD_RATIO = 1.6f
 
+    // current user ID and scroll state for form
     val uid = auth.currentUser?.uid.orEmpty()
     var uId by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
 
+    // dialogs and confirmation state variables
     var showDialog by remember { mutableStateOf(false) }
     var alertMessage by remember { mutableStateOf("") }
     var showLogoutConfirm by remember { mutableStateOf(false) }
     var showSaveSuccess by remember { mutableStateOf(false) }
     var qrVisible by remember { mutableStateOf(false) }
 
+    // overrides back button to show logout confirm dialog
     BackHandler {
         showLogoutConfirm = true
     }
 
+    // function to validate the given url against the required domain
     fun isValidHost(rawUrl: String, requiredHost: String): Boolean {
         return try {
             val normalized = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) rawUrl else "https://$rawUrl"
@@ -110,6 +131,7 @@ fun CardOwnerScreen(
         } catch (_: Exception) { false }
     }
 
+    // generates a combined card bitmap with background and QR code (done by Sahra)
     fun generateCardBitmap(
         context: Context,
         designResId: Int,
@@ -145,6 +167,7 @@ fun CardOwnerScreen(
         return result
     }
 
+    // loads existing data from Firestore on first composition
     LaunchedEffect(uid) {
         if (uid.isNotEmpty()) {
             try {
@@ -169,6 +192,7 @@ fun CardOwnerScreen(
         }
     }
 
+    // main ui container with scrollable content
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -181,7 +205,7 @@ fun CardOwnerScreen(
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Dialogs
+            // Dialogs for alerts, logout and success feedback
             if (showDialog) {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
@@ -219,6 +243,7 @@ fun CardOwnerScreen(
                 )
             }
 
+            // title text
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -496,6 +521,8 @@ fun CardOwnerScreen(
                     }
                 }
             }
+
+            // Card Design
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -508,7 +535,7 @@ fun CardOwnerScreen(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Card Design
+
                     Text(
                         "Select Card Design:",
                         fontSize = 18.sp,
@@ -541,7 +568,7 @@ fun CardOwnerScreen(
                         }
                     }
 
-                    // Save
+                    // Save button with error handling
                     Button(
                         onClick = {
                             introductionError = null; linkedInError = null; githubError =
@@ -599,6 +626,8 @@ fun CardOwnerScreen(
                                     "Saving failed! Please fix the highlighted links."
                                 return@Button
                             }
+
+                            // prepare data for Firestore
                             val data = mapOf(
                                 "linkedInUrl" to linkedInUrl,
                                 "introduction" to introduction,
@@ -611,6 +640,8 @@ fun CardOwnerScreen(
                                 "avatarId" to selectedAvatar,
                                 "designOption" to selectedDesign?.toString()
                             )
+
+                            // Save data to Firestore
                             db.collection("cardholders").document(uid).set(data)
                                 .addOnSuccessListener {
                                     uId = uid
@@ -642,14 +673,14 @@ fun CardOwnerScreen(
                         )
                     }
 
-                    // Display designed card with QR
+                    // Display designed card with QR (if available)
                     if (qrVisible && uId.isNotEmpty() && selectedDesign != null) {
-                        // 2) Remember the generated bitmap, using context, uId & design as keys
+                        // Remember the generated bitmap, using context, uId & design as keys
                         val cardBitmap: Bitmap? = remember(context, uId, selectedDesign) {
                             generateCardBitmap(context, selectedDesign!!, uId, targetWidth = 800)
                         }
 
-                        // 3) Display it
+                        // Display it
                         cardBitmap?.let { bmp ->
                             Image(
                                 bitmap = bmp.asImageBitmap(),
@@ -685,7 +716,7 @@ fun CardOwnerScreen(
                 }
             }
 
-            // Logout
+            // Logout button
             if (auth.currentUser != null) {
                 Button(
                     onClick = { showLogoutConfirm = true },
@@ -702,22 +733,38 @@ fun CardOwnerScreen(
     }
 }
 
+
+/**
+ * Saves a given Bitmap image to the device gallery.
+ * Handles different saving mechanisms for Android versions before and after Q (API 29).
+ * Shows a Toast message indicating success or failure.
+ *
+ * @param context     The Android context.
+ * @param cardBitmap  The Bitmap image to save.
+ * @param filename    The base name for the file (e.g., "My_Business_Card").
+ */
 fun saveImageToGallery(context: Context, cardBitmap: Bitmap, filename: String) {
-    var fos: OutputStream? = null
+    var fos: OutputStream? = null       // Output stream for the file
     try {
+        // android Q(API 29) and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // prepare metadata for the new media content
             val values = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, "$filename.png")
                 put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                // put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/KnowMeBetter")
                 put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/KnowMeBetter")
-                put(MediaStore.Images.Media.IS_PENDING, 1)
+                put(MediaStore.Images.Media.IS_PENDING, 1)  //// Mark the file as pending until writing is complete
             }
+            // Insert a new media item into MediaStore and get its URI
             val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            // open an output stream with the new URI
             fos = uri?.let { context.contentResolver.openOutputStream(it) }
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             uri?.let { context.contentResolver.update(it, values, null, null) }
         } else {
+            // android version before Q: use the older file-basd api
             val imagesDir = Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 .apply { mkdirs() }
@@ -727,7 +774,8 @@ fun saveImageToGallery(context: Context, cardBitmap: Bitmap, filename: String) {
                 Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(imageFile))
             )
         }
-        fos?.use { out ->
+        // Use the output stream to compress and write the bitmap data
+        fos?.use { out ->       // use() automatically closes the stream
             cardBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             Toast.makeText(context, "Saved card to gallery", Toast.LENGTH_SHORT).show()
         }
@@ -737,50 +785,12 @@ fun saveImageToGallery(context: Context, cardBitmap: Bitmap, filename: String) {
     }
 }
 
-/**
- * Builds a single Bitmap by drawing the design background
- * and then overlaying the user’s QR code centered on top.
- *
- * @param context    used to load the design drawable
- * @param designResId  R.drawable.card_optionX
- * @param uId        the string you pass into generateQrCode()
- * @param qrSizeDp   size of the QR code in dp (default 150)
- * @return           combined card Bitmap or null on failure
- */
-fun generateCardBitmap(
-    context: Context,
-    designResId: Int,
-    uId: String
-): Bitmap? {
-    // 1) load background
-    val bg = BitmapFactory.decodeResource(context.resources, designResId) ?: return null
 
-    // 2) generate QR bitmap
-    val qr = generateQrCode(uId) ?: return null
-
-    // 3) scale QR to occupy ~1/4 of card width
-    val qrPx = (bg.width / 4f).toInt()
-    val scaledQr = Bitmap.createScaledBitmap(qr, qrPx, qrPx, true)
-
-    // 4) compose final bitmap
-    val result = Bitmap.createBitmap(bg.width, bg.height, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(result)
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    canvas.drawBitmap(bg, 0f, 0f, paint)
-
-    // 5) center QR
-    val left = (bg.width  - qrPx) / 2f
-    val top  = (bg.height - qrPx) / 2f
-    canvas.drawBitmap(scaledQr, left, top, paint)
-
-    return result
-}
-
-
-
+// composable helper to display QR code for a given UID
 @Composable
 fun QrCodeImage(uId: String) {
-    val bitmap = generateQrCode(uId)
+    val bitmap = generateQrCode(uId)    // generate the QR code bitmap
+    // Displays the bitmap if generation was successful
     if (bitmap != null) {
         Image(bitmap.asImageBitmap(), contentDescription = "QR Code")
     } else {
