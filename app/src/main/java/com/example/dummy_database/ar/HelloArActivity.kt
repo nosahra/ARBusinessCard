@@ -15,6 +15,19 @@
  */
 package com.example.dummy_database.ar
 
+
+/**
+ * Main Activity for the Augmented Reality (AR) business card experience.
+ * This activity sets up and manages the ARCore session, handles camera permissions,
+ * renders the AR scene (including the loaded avatar), and triggers Text-to-Speech (TTS)
+ * playback for the user's introduction. It adapts to different device orientations.
+ * Based on Google ARCore HelloAR example code.
+ *
+ * Responsibilities:
+ * Newton: Retrieves introduction data and trigger tts
+ * Sahra: Did everything else for this screen
+ */
+
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
@@ -45,8 +58,7 @@ import kotlinx.coroutines.launch
 import com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay
 
 /**
- * This is a simple example that shows how to create an augmented reality (AR) application using the
- * ARCore API. The application will display any detected planes and will allow the user to tap on a
+ * The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3D model.
  */
 class HelloArActivity : AppCompatActivity() {
@@ -64,23 +76,25 @@ class HelloArActivity : AppCompatActivity() {
   // Flag to ensure TTS is triggered only once.
   var ttsTriggered = false
 
-  // Retrieve extras once.
+  // Introduction text to speak, passed via Intent extras
   val introductionText: String by lazy {
     intent.getStringExtra("introduction") ?: ""
   }
+  // Voice preference to use, passed via Intent extras
   val voicePreference: String by lazy {
     intent.getStringExtra("voicePreference") ?: ""
   }
+  // Avatar ID to use, passed via Intent extras
   val avatarId: String by lazy {
     intent.getStringExtra("avatarId") ?: ""
   }
 
-  // Call this method to trigger TTS for the introduction.
+  // Trigger TTS for introduction text on a background thread.
+  // Ensures it only happens once per activity lifecycle
   fun triggerTTSForIntroduction() {
     if (!ttsTriggered && introductionText.isNotEmpty()) {
       ttsTriggered = true
-      // Use a coroutine to call your suspend function.
-      // It’s better to use lifecycleScope instead of GlobalScope.
+      // Use lifecycleScope to avoid GlobalScope
       lifecycleScope.launch(Dispatchers.IO) {
         synthesizeAndPlay(this@HelloArActivity, introductionText, voicePreference)
       }
@@ -166,7 +180,7 @@ class HelloArActivity : AppCompatActivity() {
     )
   }
 
-  // You can implement a simple check based on screen size or other criteria.
+  // implement a simple check based on screen size or other criteria.
   private fun isPhoneDevice(): Boolean {
     // Example check using screen size: phones typically have a smaller screen.
     val screenLayout = resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK
@@ -192,12 +206,6 @@ class HelloArActivity : AppCompatActivity() {
     }
   }
 
-//  override fun onTouchEvent(event: MotionEvent): Boolean {
-//    // Assume you have a way to get the current frame from your ARCore session.
-//    val frame = arCoreSessionHelper.session?.update() ?: return super.onTouchEvent(event)
-//    renderer.handleTap(event, frame)
-//    return super.onTouchEvent(event)
-//  }
 
   override fun onWindowFocusChanged(hasFocus: Boolean) {
     super.onWindowFocusChanged(hasFocus)

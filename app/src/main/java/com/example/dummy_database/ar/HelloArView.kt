@@ -42,6 +42,22 @@ import com.example.dummy_database.ui.network.NetworkConnectivityObserver
 import com.example.dummy_database.ui.network.ConnectivityStatus
 import kotlinx.coroutines.flow.collect
 
+/**
+ * Manages the Android View-based UI elements for the AR business card screen.
+ * Finds UI elements from the layout, sets up event listeners for buttons (social links, TTS playback),
+ * displays subtitles, manages an offline connectivity banner. Interacts with the owning Activity
+ * and external utilities like TTSUtil and NetworkConnectivityObserver.
+ * This class acts as a presenter for the view layer. Based on Google ARCore HelloAR example code's view management pattern.
+ *
+ *Responsibilities:
+ *Sahra:
+ *Newton: Playing TTS for introduction, experience and other buttons. adding stop button functionality.
+ *
+ *
+ */
+
+
+
 
 
 
@@ -66,7 +82,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       }
     }
 
-  // In HelloArView.kt, near the top inside the class body (or in an init block):
+  // Lazy-fetch text fields passed via Intent extras
   private val educationTextFetch: String by lazy {
     activity.intent.getStringExtra("education") ?: "No Education Data"
   }
@@ -82,6 +98,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   private val avatarId: String by lazy {
     activity.intent.getStringExtra("avatar_id") ?: "default"
   }
+  // tracks the current speaking section
   private var currentSpeakingSection: String? = null
 
   fun hideButtons() {
@@ -100,6 +117,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     get() = listOf(educationText, experienceText, hobbiesText)
       .any { it.visibility == View.VISIBLE }
 
+  // Stops any currently playing TTS audio and hides all subtitle TextViews
   fun stopTTSAndHideAllSubtitles() {
     com.example.dummy_database.tts.TTSUtil.stop()
     currentSpeakingSection = null
@@ -127,7 +145,6 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     }
   }
 
-
   private val linkedInLink: String by lazy {
     val rawLink = activity.intent.getStringExtra("linkedInUrl") ?: "No LinkedIn URL"
     if (rawLink == "No LinkedIn URL") rawLink else normalizeUrl(rawLink)
@@ -146,10 +163,11 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     activity.intent.getStringExtra("voicePreference") ?: "No Voice Preference"
   }
 
+  //Find the TextView used as the offline banner
   private val offlineBanner: TextView =
     root.findViewById(R.id.offline_banner)
 
-  // Use existing lifecycleScope on the Activity
+  // Observes network and toggles offline banner visibility
   private val connectivityObserver = NetworkConnectivityObserver(activity)
 
   override fun onResume(owner: LifecycleOwner) {
@@ -163,9 +181,9 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
           // hide banner
           offlineBanner.visibility = View.GONE
         } else {
-          // show banner with your custom text
+          // show banner with custom text
           offlineBanner.text =
-            "You are offline! To listen to TTS, please connect to the internet."
+            "You are offline! Please, connect to the internet."
           offlineBanner.visibility = View.VISIBLE
         }
       }
@@ -177,6 +195,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
     surfaceView.onPause()
   }
 
+  //buttons to launch external links: initialized below
   val linkedInButton =
     root.findViewById<ImageButton>(R.id.linkedin_button).apply {
       setOnClickListener {
@@ -226,6 +245,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
       }
     }
 
+  // sets up stop button for TTS playback
   private val stopButton: ImageButton = root.findViewById<ImageButton>(R.id.stop_button).apply {
     visibility = View.GONE
     setOnClickListener {
@@ -237,24 +257,32 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val introButton = root.findViewById<Button>(R.id.intro_button)
   val introText = root.findViewById<TextView>(R.id.intro_text)
 
+  // Initialization block for the Intro button's click listener
   init {
+    // Set up the TTS button click behavior
     introButton.setOnClickListener {
+      // If already speaking this section, ignore repeat clicks
       if (currentSpeakingSection == "intro") return@setOnClickListener
 
+      // Stop any ongoing TTS playback and hide previous subtitles
       stopTTSAndHideAllSubtitles()
 
+      // Mark this section as currently speaking
       currentSpeakingSection = "intro"
-      introText.text = introductionText
+      introText.text = introductionText //generate subtitle text
 
+      // Launch a coroutine to perform TTS synthesis
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
           introductionText,
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
+          // display the stop button and subtitle
           onStart = {
             stopButton.visibility = View.VISIBLE
             showAndHideSubtitle(introText)
           },
+          // upon completion, hide the stop button
           onComplete = {
             stopButton.visibility = View.GONE
             currentSpeakingSection = null
@@ -268,25 +296,30 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val educationButton = root.findViewById<Button>(R.id.education_button)
   val educationText = root.findViewById<TextView>(R.id.education_text)
 
+  // Initialization block for the Education button's click listener
   init {
     educationButton.setOnClickListener {
       if (currentSpeakingSection == "education") return@setOnClickListener
 
+      //Stop any ongoing TTS playback and hide previous subtitles
       stopTTSAndHideAllSubtitles()
 
-      currentSpeakingSection = "education"
-      educationText.text = educationTextFetch
+      currentSpeakingSection = "education"  // Mark this section as currently speaking
+      educationText.text = educationTextFetch   //generate subtitle text
 
+      // Launch a coroutine to perform TTS synthesis
       activity.lifecycleScope.launch(Dispatchers.IO) {
         com.example.dummy_database.tts.TTSUtil.synthesizeAndPlay(
           activity,
           educationTextFetch,
           activity.intent.getStringExtra("voicePreference") ?: "FEMALE",
           onStart = {
+            // upon start, display the stop button and subtitle
             stopButton.visibility = View.VISIBLE
             showAndHideSubtitle(educationText)
           },
           onComplete = {
+            // upon completion, hide the stop button
             stopButton.visibility = View.GONE
             currentSpeakingSection = null
           }
@@ -298,6 +331,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val experienceButton = root.findViewById<Button>(R.id.experience_button)
   val experienceText = root.findViewById<TextView>(R.id.experience_text)
 
+  // Initialization block for the Experience button's click listener
   init {
     experienceButton.setOnClickListener {
       if (currentSpeakingSection == "experience") return@setOnClickListener
@@ -328,6 +362,7 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val hobbiesButton = root.findViewById<Button>(R.id.hobbies_button)
   val hobbiesText = root.findViewById<TextView>(R.id.hobbies_text)
 
+  // Initialization block for the Hobbies button's click listener
   init {
     hobbiesButton.setOnClickListener {
       if (currentSpeakingSection == "hobbies") return@setOnClickListener
@@ -372,13 +407,6 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
   val snackbarHelper = SnackbarHelper()
   val tapHelper = TapHelper(activity).also { surfaceView.setOnTouchListener(it) }
 
-//  override fun onResume(owner: LifecycleOwner) {
-//    surfaceView.onResume()
-//  }
-//
-//  override fun onPause(owner: LifecycleOwner) {
-//    surfaceView.onPause()
-//  }
 
   /**
    * Shows a pop-up dialog on the first tap in HelloARRenderer, determining whether the user wants
@@ -452,7 +480,5 @@ class HelloArView(val activity: HelloArActivity) : DefaultLifecycleObserver {
         .show()
     }
   }
-
-
 
 }
