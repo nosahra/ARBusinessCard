@@ -12,15 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.ui.graphics.Color
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.layout.fillMaxWidth
-
-import androidx.compose.material3.AlertDialog
 
 import androidx.compose.runtime.*
 import com.example.dummy_database.ar.HelloArActivity
@@ -116,11 +111,6 @@ fun ScannerScreen(
     // now yields ConnectivityStatus.Available or .Unavailable
     val connectivityStatus = rememberConnectivityState()
 
-    // Launch the QR scanner as soon as we enter this screen
-//    LaunchedEffect(Unit) {
-//        scannerLauncher.launch(Unit)
-//    }
-
     // only fire the camera‐launch effect when we go from Unavailable → Available
     LaunchedEffect(connectivityStatus) {
         if (connectivityStatus == ConnectivityStatus.Available) {
@@ -144,43 +134,6 @@ fun ScannerScreen(
         }
     }
 
-
-//    Column(
-//        modifier = Modifier.fillMaxSize().padding(16.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Text("Employer Screen")
-//
-//        // Button to launch the QR scanner
-//        Button(
-//            onClick = { scannerLauncher.launch(Unit) },
-//            modifier = Modifier.padding(top = 16.dp)
-//        ) {
-//            Text("Scan QR Code")
-//        }
-
-//        // If we have a scannedUid, show the data
-//        scannedUid?.let { uid ->
-//            Text("Scanned User ID: $uid")
-//
-//            // For now, just display the fields
-//            Text("Introduction: $introduction")
-//            Text("Education: $education")
-//            Text("Experience: $experience")
-//            Text("Hobbies: $hobbies")
-//        }
-
-//        //
-//        Text("Opening camera ...", modifier = Modifier.padding(top = 16.dp))
-//
-//        // Back button
-//        Button(
-//            onClick = onBackClick,
-//            modifier = Modifier.padding(top = 16.dp)
-//        ) {
-//            Text("Back")
-//        }
-//    }
 }
 
 

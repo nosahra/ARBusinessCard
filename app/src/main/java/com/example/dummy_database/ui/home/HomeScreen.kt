@@ -1,3 +1,14 @@
+/**
+ * Defines the home screen UI for the AR business card application.
+ * This screen provides navigation options for creating/editing a card,
+ * scanning a card, and accessing help.
+ *
+ * Contribution:
+ * Newton: Skeleton of the page
+ * Sahra: Styling,layout and renaming labels. also added the help button
+ */
+
+
 
 package com.example.dummy_database.ui.home
 
@@ -27,22 +38,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontStyle
 import com.example.dummy_database.R
-import com.google.firebase.auth.FirebaseAuth
 
 
+/**
+ * Composable function that renders the main home screen UI
+ */
 @Composable
 fun HomeScreen(
-    onCardOwnerScreenClick: () -> Unit,
-    onScannerScreenClick: () -> Unit,
-    onNeedAuth: () -> Unit,
-    onHelp: () -> Unit,
+    onCardOwnerScreenClick: () -> Unit,     //Callback when user wants to view or edit their own card
+    onScannerScreenClick: () -> Unit,       //Callback to launch the QR-code scanner for viewing others' cards
+    onNeedAuth: () -> Unit,                 //Callback when user needs to log in or register
+    onHelp: () -> Unit,                     //Callback to show help overlay
 ) {
+    // Full-screen container with white background
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // 🔹 Top-left Help icon button
+        // 🔹 Top-left Help icon button (done by Sahra)
         androidx.compose.material3.IconButton(
             onClick = onHelp,
             modifier = Modifier.align(Alignment.TopEnd)
@@ -55,7 +69,7 @@ fun HomeScreen(
             )
         }
 
-        // 🔹 Title
+        // 🔹 App Title
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -79,13 +93,14 @@ fun HomeScreen(
             )
         }
 
-        // 🔹 Bottom Buttons
+        // 🔹 Action Buttons
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 50.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            //label for registration/login
             Text(
                 text = buildAnnotatedString {
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Create") }
@@ -99,6 +114,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+            // Register/Login button
             Button(
                 onClick = onNeedAuth,
                 modifier = Modifier
@@ -111,6 +127,7 @@ fun HomeScreen(
                 Text("Register/Login", color = Color(0xFFF7D8A5), fontSize = 18.sp)
             }
 
+            // label for QR code scanning
             Text(
                 text = buildAnnotatedString {
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("View") }
@@ -122,6 +139,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
             )
 
+            // QR code scanning button
             Button(
                 onClick = onScannerScreenClick,
                 modifier = Modifier

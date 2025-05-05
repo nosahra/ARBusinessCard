@@ -13,7 +13,7 @@ data class Input(
 data class Voice(
     val languageCode: String = "en-GB",   // Set the language code to GB English
     val name: String? = null, // Allow dynamic setting of the voice
-    val ssmlGender: String = "NEUTRAL",    //  adjust gender (NEUTRAL, MALE, FEMALE)
+    val ssmlGender: String = "NEUTRAL",    //  by default gender set to neutral
 )
 
 data class AudioConfig(
