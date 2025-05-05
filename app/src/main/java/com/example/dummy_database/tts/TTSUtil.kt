@@ -1,21 +1,27 @@
 package com.example.dummy_database.tts
 
+/**
+ * Utility object for handling Text-to-Speech (TTS) synthesis and playback
+ * using an external TTS API and Android's MediaPlayer for audio playback.
+ *
+ * Author: Newton
+ */
+
 import android.content.Context
 import android.media.MediaPlayer
 import android.util.Base64
 import android.util.Log
-import com.example.dummy_database.tts.AudioConfig
-import com.example.dummy_database.tts.Input
-import com.example.dummy_database.tts.TTSRequest
-import com.example.dummy_database.tts.Voice
-import com.example.dummy_database.tts.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-
+/**
+ * Singleton object providing Text-to-Speech utility functions.
+ * Manages the MediaPlayer instance for playback.
+ */
 object TTSUtil {
 
+    // holds currently active MediaPlayer instance. null if no audio is playing
     private var mediaPlayer: MediaPlayer? = null
 
     /**
@@ -47,7 +53,7 @@ object TTSUtil {
             audioConfig = AudioConfig(audioEncoding = "MP3")
         )
 
-        // IMPORTANT: Replace this API key with your actual key (store it securely!)
+        // Set the API key for authentication.
         val apiKey = "AIzaSyDoba8eStqzTUAr8O3COyc-eGRFzmWHank"
 
         try {
@@ -61,15 +67,6 @@ object TTSUtil {
             val tempFile = File.createTempFile("tts", "mp3", context.cacheDir).apply {
                 writeBytes(audioBytes)
             }
-
-//            // Use MediaPlayer to play the audio.
-//            withContext(Dispatchers.Main) {
-//                MediaPlayer().apply {
-//                    setDataSource(tempFile.absolutePath)
-//                    prepare()
-//                    start()
-//                }
-//            }
 
             withContext(Dispatchers.Main) {
                 // 1) Stop & release any old player:
@@ -101,7 +98,7 @@ object TTSUtil {
         }
     }
 
-    /** Immediately stops and releases any in-flight playback. */
+    // Immediately stops and releases any in-flight playback
     fun stop() {
         mediaPlayer?.let {
             if (it.isPlaying) it.stop()

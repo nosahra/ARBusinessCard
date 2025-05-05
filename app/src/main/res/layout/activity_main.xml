@@ -29,7 +29,7 @@
       android:height="40dp"
       android:padding="10dp"
       android:visibility="gone"
-      android:text="You are offline! To listen to TTS, please connect to the internet."/>
+      android:text="You are offline!"/>
 
 
 
