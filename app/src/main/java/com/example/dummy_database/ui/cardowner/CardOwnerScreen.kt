@@ -120,12 +120,6 @@ fun CardOwnerScreen(
         showLogoutConfirm = true
     }
 
-//    fun isValidHost(url: String, requiredHost: String): Boolean {
-//        return try {
-//            val h = url.toUri().host ?: return false
-//            url.startsWith("http") && h.endsWith(requiredHost)
-//        } catch (_: Exception) { false }
-//    }
 
     /**
      * Returns true if [url] points at a host that is exactly
@@ -274,7 +268,7 @@ fun CardOwnerScreen(
                     experience    = "I worked as a business strategist for 2 years at IBM."
                     hobbies       = "I love playing football and learning new things."
                     // 3) then show the API‐not‐available message
-                    linkedInFetchError = "LinkedIn API isn’t available. Below fields are filled with placeholder data. Please, update the placeholder data."
+                    linkedInFetchError = "LinkedIn API isn’t available. Below fields are filled with placeholder data. Please, update the placeholder data as required."
                 }
             },
             modifier = Modifier.padding(top = 8.dp)
