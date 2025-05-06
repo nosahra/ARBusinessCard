@@ -21,3 +21,41 @@ Individual Contribution:
 ------------------------
 Newton >
 --------
+
+
+
+
+------------------------
+ // How to run the code //
+------------------------
+
+1. Prerequisites
+---------------
+-Install Android Studio on your machine
+
+2. Set up project
+------------------
+-Unzip the provided archive
+-Open Android Studio
+-In file menu select “Open”. Then, Select the unzipped folder and press OK.
+-Wait for Gradle Sync to finish (first run may download dependencies which might take few minutes if your device is capable. otherwise, it will take longer to download all dependencies)
+- Once Gradle Build is finished, you can run the app.
+
+3. Run the app
+---------------
+=> Option A – Android Studio Emulator(recommended) [Your device must have at least 10 GB of free space to run on an emulator]
+
+-In Device Manager, create an AndroidVirtualDevice  running API24 or higher.
+-Select the AVD in the target drop‑down.
+-Press Run
+
+
+=> Option B – On an android SmartPhone
+
+-On the phone: enable Developer options (tap Build number 7times),
+then open Developer options and enable USB debugging.
+-Connect the phone via USB and accept the debugging prompt.
+-Select the device in the target list and press Run..
+Once deployed, the app launches automatically on your android phone.
+
+
