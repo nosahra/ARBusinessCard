@@ -64,7 +64,8 @@ Unit Testing
    
 -Install Android Studio on your machine
 
-3. Set up project
+
+2. Set up project
 
 -Unzip the provided archive
 
@@ -76,8 +77,9 @@ Unit Testing
 
 - Once Gradle Build is finished, you can run the app.
 
+
 3. Run the app
----------------
+
 => Option A – Android Studio Emulator(recommended) [Your device must have at least 10 GB of free space to run on an emulator]
 
 -In Device Manager, create an AndroidVirtualDevice  running API24 or higher.
