@@ -61,11 +61,11 @@ Unit Testing
 ------------------------
 
 1. Prerequisites
----------------
+   
 -Install Android Studio on your machine
 
-2. Set up project
-------------------
+3. Set up project
+
 -Unzip the provided archive
 
 -Open Android Studio
