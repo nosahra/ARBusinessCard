@@ -1,7 +1,6 @@
 AR Business Card Application
 --------------------------------
-Student Name: Newton Nath (Student Id: 220298872)
-Student Name: Sahra Yusuf (Student Id: 220364960)
+Student Name: Newton Nath (Student Id: 220298872), Student Name: Sahra Yusuf (Student Id: 220364960)
 ---------
 Project Overview
 ---------
