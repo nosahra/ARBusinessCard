@@ -54,6 +54,20 @@ Integrating TTS to AR Screen
 Unit Testing
 – Wrote simple unit tests: TTSUtilTest.kt, isValidHostTest.kt, AuthValidationTest.kt
 
+Sahra >
+--------
+App UI
+- HomeScreen.kt
+- AuthScreen.kt
+- HelpScreen.kt
+- CardOwnerScreen.kt
+- activity_mail.xml
+- custom_capture_layout.kt
+
+AR Implementation
+- HelloArRenderer.kt
+- HelloArView.kt
+- HelloArActivity.kt
 
 ------------------------
  // How to run the code //
