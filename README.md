@@ -28,7 +28,32 @@ Individual Contribution:
 Newton >
 --------
 
+App Architecture
+- MainActivity.kt
+- HomeScreen.kt
+- AppDestinations.kt
 
+Text-to-Speech Implementation
+– TTSUtil.kt, RetrofitClient.kt, GoogleTTSService.kt, TTSMOdels.kt
+
+Login/Registration
+- AuthScreen.kt
+
+Card Owner Screen(Card Creation)
+- CardOwnerScreen.kt
+
+Scanning QR code and launching AR Screen
+- ScannerScreen.kt
+- QrCodeUtils.kt
+
+Observe connectivity and show offline banner
+- ConnectivityObserver.kt, ConnectivityLayout.kt, OfflineBanner.kt
+
+Integrating TTS to AR Screen
+- HelloArActivity.kt, HelloArView.kt
+
+Unit Testing
+– Wrote simple unit tests: TTSUtilTest.kt, isValidHostTest.kt, AuthValidationTest.kt
 
 
 ------------------------
