@@ -112,5 +112,18 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-pager:0.32.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.32.0")
+
+    // Mockito Core (Works with JUnit 4)
+    testImplementation("org.mockito:mockito-core:5.11.0")
+
+    // Mockito-Kotlin (Works with JUnit 4)
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
+
+    // Coroutines Testing (Works with JUnit 4)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3") // Adjust version if needed
+
+    // Robolectric gives fake Android runtime so Uri.parse() works in unit tests.
+    testImplementation("org.robolectric:robolectric:4.11.1")
+
 }
 

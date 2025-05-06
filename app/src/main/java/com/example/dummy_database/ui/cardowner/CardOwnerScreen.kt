@@ -64,6 +64,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+
+// function to validate the given url against the required domain
+fun isValidHost(rawUrl: String, requiredHost: String): Boolean {
+    return try {
+        val normalized = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) rawUrl else "https://$rawUrl"
+        val host = Uri.parse(normalized).host?.lowercase() ?: return false
+        host == requiredHost || host.endsWith(".$requiredHost")
+    } catch (_: Exception) { false }
+}
+
+
+
 @Composable
 fun CardOwnerScreen(
     onBackClick: () -> Unit
@@ -124,14 +136,6 @@ fun CardOwnerScreen(
         showLogoutConfirm = true
     }
 
-    // function to validate the given url against the required domain
-    fun isValidHost(rawUrl: String, requiredHost: String): Boolean {
-        return try {
-            val normalized = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) rawUrl else "https://$rawUrl"
-            val host = Uri.parse(normalized).host?.lowercase() ?: return false
-            host == requiredHost || host.endsWith(".$requiredHost")
-        } catch (_: Exception) { false }
-    }
 
     // generates a combined card bitmap with background and QR code (done by Sahra)
     fun generateCardBitmap(

@@ -108,4 +108,12 @@ object TTSUtil {
         Log.d("TTSUtil", "Playback stopped by user.")
     }
 
+    // for unit testing
+    fun mapVoiceParams(voicePreference: String): Pair<String, String> =
+        when (voicePreference.uppercase()) {
+            "MALE"   -> "en-GB-Journey-D" to "MALE"
+            "FEMALE" -> "en-GB-Journey-F" to "FEMALE"
+            else     -> "en-GB-Journey-O" to "NEUTRAL"
+        }
+
 }
