@@ -23,9 +23,9 @@ package com.example.dummy_database.ar
  * playback for the user's introduction. It adapts to different device orientations.
  * Based on Google ARCore HelloAR example code.
  *
- * Responsibilities:
- * Newton: Retrieves introduction data and trigger tts
- * Sahra: Did everything else for this screen
+ * Contributions =>
+ * Newton=> Added introduction data retrieval and triggering tts
+ * Sahra=> Did everything else for this screen
  */
 
 import android.content.pm.ActivityInfo

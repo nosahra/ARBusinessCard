@@ -6,7 +6,7 @@ package com.example.dummy_database
  * navigation graph, and initial destination logic based on user preferences.
  * It also wraps the main content with a network connectivity status layout.
  *
- * Responsibilities:
+ * Contributions=>
  * Newton: setting up the Compose UI, navigation graph and wrapper for offline banner
  * Sahra: initial destination logic for user's first launch to show help screen
  */

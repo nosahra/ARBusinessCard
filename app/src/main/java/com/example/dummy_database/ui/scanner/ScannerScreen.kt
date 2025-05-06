@@ -8,7 +8,7 @@ package com.example.dummy_database.ui.scanner
  * with the retrieved business card data. It also includes basic
  * network connectivity handling.
  *
- * Responsibilities: Newton
+ * Sole Contributor: Newton
  */
 
 

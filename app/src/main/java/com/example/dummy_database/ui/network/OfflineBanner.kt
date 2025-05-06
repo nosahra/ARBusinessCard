@@ -6,7 +6,7 @@ package com.example.dummy_database.ui.network
  * Displays a full-width red bar with centered white text when the
  * device is not connected to the internet.
  *
- * Responsibilities: Newton
+ * Sole Contributor: Newton
  */
 
 import androidx.compose.foundation.background

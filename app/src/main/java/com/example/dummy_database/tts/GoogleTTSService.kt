@@ -1,7 +1,7 @@
 package com.example.dummy_database.tts
 
 // Retrofit interface for the synthesize call
-// Author: Newton
+// Sole Contributor: Newton
 
 
 import retrofit2.http.Body

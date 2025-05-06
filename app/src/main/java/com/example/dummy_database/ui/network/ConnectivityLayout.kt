@@ -4,7 +4,7 @@ package com.example.dummy_database.ui.network
  * A composable layout wrapper that observes network connectivity and displays
  * an "Offline" banner at the top of its content when the network is unavailable.
  *
- * Responsibilities:  Newton
+ * Sole Contributor:  Newton
  */
 
 import android.content.Context

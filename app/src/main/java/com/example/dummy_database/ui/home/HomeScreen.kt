@@ -3,7 +3,7 @@
  * This screen provides navigation options for creating/editing a card,
  * scanning a card, and accessing help.
  *
- * Contribution:
+ * Contributions:
  * Newton: Skeleton of the page
  * Sahra: Styling,layout and renaming labels. also added the help button
  */

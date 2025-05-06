@@ -5,7 +5,7 @@ package com.example.dummy_database.ui.auth
  * using Firebase Authentication with email and password. Includes input validation,
  * email verification, error display and network connectivity checks.
  *
- * Responsibilities
+ * Contributions=>
  * Newton: Structure of this page, all core logics and flows
  * Sahra: Improved UI
  */
@@ -45,6 +45,13 @@ import com.example.dummy_database.ui.network.rememberConnectivityState
 import com.google.firebase.auth.FirebaseAuth
 
 
+// function for password validation
+fun isPasswordStrong(pw: String): Boolean {
+    // at least 6 chars, at least one uppercase, at least one digit
+    val regex = Regex("^(?=.*[A-Z])(?=.*\\d).{6,}\$")
+    return regex.matches(pw)
+}
+
 @Composable
 fun AuthScreen(
     onAuthSuccess: () -> Unit,
@@ -70,12 +77,7 @@ fun AuthScreen(
     // only used in register mode for inline validation
     var confirmPassword by remember { mutableStateOf("") }
 
-    // function for password validation
-    fun isPasswordStrong(pw: String): Boolean {
-        // at least 6 chars, at least one uppercase, at least one digit
-        val regex = Regex("^(?=.*[A-Z])(?=.*\\d).{6,}\$")
-        return regex.matches(pw)
-    }
+
 
     // container for the whole screen
     Box(

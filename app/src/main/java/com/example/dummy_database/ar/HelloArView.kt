@@ -49,10 +49,11 @@ import kotlinx.coroutines.flow.collect
  * and external utilities like TTSUtil and NetworkConnectivityObserver.
  * This class acts as a presenter for the view layer. Based on Google ARCore HelloAR example code's view management pattern.
  *
- *Responsibilities:
- *Sahra:
- *Newton: Playing TTS for introduction, experience and other buttons. adding stop button functionality.
+ *Contributions=>
  *
+ *Sahra:
+ *
+ *Newton: Playing TTS for introduction, experience and other buttons. adding stop button functionality.
  *
  */
 

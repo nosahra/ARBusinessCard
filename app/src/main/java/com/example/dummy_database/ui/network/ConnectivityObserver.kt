@@ -5,7 +5,7 @@ package com.example.dummy_database.ui.network
  * using Android's ConnectivityManager. Provides a Compose utility function
  * to easily consume the connectivity state within composables.
  *
- * Responsibilities: Newton
+ * Sole Contributor: Newton
  */
 
 

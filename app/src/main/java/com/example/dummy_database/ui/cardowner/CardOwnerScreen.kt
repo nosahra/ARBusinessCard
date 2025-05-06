@@ -8,11 +8,13 @@ package com.example.dummy_database.ui.cardowner
  * based on the user's ID and provides functionality to download the generated card image.
  * Also handles basic input validation.
  *
- * Responsibilities:
- * Newton: Structure of the Cardowner Screen, saving and loading data from Firestore,
+ * Contributions=>
+ *
+ * Newton=> Structure of the Cardowner Screen, saving and loading data from Firestore,
  * error handling for input validation, linkedin dummy data fetching,
  * QR code generation and image download
- * Sahra: Improved UI,  card design and preview options
+ *
+ * Sahra=> Improved UI,  card design and preview options
  */
 
 import android.content.ContentValues

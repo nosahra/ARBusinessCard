@@ -1,7 +1,7 @@
 package com.example.dummy_database.tts
 
 // Data classes for the Google TTS API request and response
-// Author: Newton
+// Sole Contributor: Newton
 
 // top-level request body to synthesize speech
 data class TTSRequest(

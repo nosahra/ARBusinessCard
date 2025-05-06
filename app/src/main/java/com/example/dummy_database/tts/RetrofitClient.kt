@@ -4,7 +4,7 @@ package com.example.dummy_database.tts
  * Provides a singleton Retrofit client for interacting with the Google Cloud Text-to-Speech API.
  * Configures Retrofit with the base URL and JSON converter.
  *
- * Author: Newton
+ * Sole Contributor: Newton
  */
 
 import retrofit2.Retrofit

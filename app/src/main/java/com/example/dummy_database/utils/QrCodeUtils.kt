@@ -3,7 +3,7 @@ package com.example.dummy_database.utils
 /**
  * Utility functions for generating QR codes using the zxing library.
  *
- * Responsibilities: Newton
+ * Sole Contributor: Newton
  */
 
 

@@ -4,7 +4,7 @@ package com.example.dummy_database.tts
  * Utility object for handling Text-to-Speech (TTS) synthesis and playback
  * using an external TTS API and Android's MediaPlayer for audio playback.
  *
- * Author: Newton
+ * Sole Contributor: Newton
  */
 
 import android.content.Context
