@@ -80,6 +80,8 @@ AR Implementation
 
 2. Set up project
 
+-Download ZIP file of the repository
+
 -Unzip the provided archive
 
 -Open Android Studio
